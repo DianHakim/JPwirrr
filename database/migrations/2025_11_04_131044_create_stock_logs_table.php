@@ -12,7 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('stock_logs', function (Blueprint $table) {
-            $table->id();
+            $table->id('stk_id');
+            $table->foreignId('prd_id')->constrained('products')->cascadeOnDelete();
+            $table->integer('before');
+            $table->integer('after');
+            $table->string('description')->nullable();
             $table->timestamps();
         });
     }

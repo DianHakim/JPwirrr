@@ -12,7 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('transaction_details', function (Blueprint $table) {
-            $table->id();
+            $table->id('tdt_id');
+            $table->foreignId('trs_id')->constrained('transactions')->cascadeOnDelete();
+            $table->foreignId('prd_id')->constrained('products')->restrictOnDelete();
+            $table->integer('qty')->default(1);
+            $table->decimal('price_at_sale', 12, 2);
+            $table->decimal('subtotal', 12, 2);
             $table->timestamps();
         });
     }
