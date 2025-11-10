@@ -9,9 +9,7 @@ return new class extends Migration {
     {
         Schema::create('product_categories', function (Blueprint $table) {
             $table->id(); // id
-            $table->string('pdc_name');
-            $table->unsignedBigInteger('user_id');
-            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+            $table->string('name');
             $table->timestamps();
         });
     }

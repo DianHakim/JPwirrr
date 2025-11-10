@@ -26,9 +26,9 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // categories
-        $cat1 = ProductCategory::create(['pdc_name' => 'Baju', 'user_id' => $user->id]);
-        $cat2 = ProductCategory::create(['pdc_name' => 'Celana', 'user_id' => $user->id]);
-        $cat3 = ProductCategory::create(['pdc_name' => 'Aksesoris', 'user_id' => $user->id]);
+        $cat1 = ProductCategory::create(['name' => 'Baju']);
+        $cat2 = ProductCategory::create(['name' => 'Celana']);
+        $cat3 = ProductCategory::create(['name' => 'Aksesoris']);
 
         // products
         $item1 = Product::create([

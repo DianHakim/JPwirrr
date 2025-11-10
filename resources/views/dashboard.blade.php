@@ -1,12 +1,7 @@
 @extends('layouts.app')
-
 @section('title', 'Dashboard')
-@section('page-title', 'Dashboard Kamu')
 
 @section('content')
-<div class="card">
-    <div class="card-body">
-        🎉 Selamat datang di Dashboard JP Wear!
-    </div>
-</div>
+<h1 class="mt-4">Selamat Datang di JP Wear</h1>
+<p>Ini dashboard kasir kamu!</p>
 @endsection
