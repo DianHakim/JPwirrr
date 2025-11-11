@@ -35,7 +35,13 @@
                     </a>
                 </li>
 
-
+                {{-- Produk --}}
+                <li class="sidebar-item {{ request()->routeIs('products.*') ? 'active' : '' }}">
+                    <a href="{{ route('products.index') }}" class="sidebar-link">
+                        <i class="bi bi-box-seam"></i>
+                        <span>Produk</span>
+                    </a>
+                </li>
             </ul>
         </div>
 

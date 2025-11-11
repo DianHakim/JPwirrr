@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\ProductCategory;
-use App\Models\Product as P; // fallback alias not needed if using Product directly
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
@@ -37,6 +36,7 @@ class DatabaseSeeder extends Seeder
             'prd_stock' => 20,
             'prd_color' => 'Hitam',
             'prd_size' => 'L',
+            'prd_photo' => 'products/kaos-jp.jpg',
             'pdc_id' => $cat1->id,
         ]);
 
@@ -46,6 +46,7 @@ class DatabaseSeeder extends Seeder
             'prd_stock' => 30,
             'prd_color' => 'Putih',
             'prd_size' => 'M',
+            'prd_photo' => 'products/hoodie-anak.jpg',
             'pdc_id' => $cat1->id,
         ]);
 

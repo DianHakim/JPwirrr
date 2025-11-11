@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->integer('prd_stock')->default(0);
             $table->string('prd_color')->nullable();
             $table->string('prd_size')->nullable();
+            $table->string('prd_photo')->nullable();
             $table->unsignedBigInteger('pdc_id');
             $table->foreign('pdc_id')->references('id')->on('product_categories')->cascadeOnDelete();
             $table->timestamps();
