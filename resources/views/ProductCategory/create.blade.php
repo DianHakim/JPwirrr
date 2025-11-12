@@ -14,8 +14,8 @@
                 </div>
 
                 <div class="d-flex justify-content-between mt-4">
-                    <a href="{{ route('productcategory.index') }}" class="btn btn-dark rounded-pill px-4">Kembali</a>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">Simpan</button>
+                    <a href="{{ route('productcategory.index') }}" class="btn btn-secondary rounded-pill px-4">Kembali</a>
+                    <button type="submit" class="btn btn-success rounded-pill px-4">Simpan</button>
                 </div>
             </form>
         </div>

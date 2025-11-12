@@ -56,6 +56,7 @@ class DatabaseSeeder extends Seeder
             'prd_stock' => 15,
             'prd_color' => 'Biru',
             'prd_size' => '32',
+            'prd_photo' => 'products/hoodie-anak.jpg',
             'pdc_id' => $cat2->id,
         ]);
 

@@ -40,7 +40,7 @@
             <select name="pdc_id" class="form-select" required>
                 @foreach($categories as $cat)
                     <option value="{{ $cat->id }}" {{ $cat->id == $product->pdc_id ? 'selected' : '' }}>
-                        {{ $cat->pdc_name }}
+                        {{ $cat->name }}
                     </option>
                 @endforeach
             </select>
@@ -55,8 +55,8 @@
         </div>
 
         <div class="d-flex justify-content-between">
-            <a href="{{ route('products.index') }}" class="btn btn-dark">Kembali</a>
-            <button type="submit" class="btn btn-primary">Perbarui</button>
+            <a href="{{ route('products.index') }}" class="btn btn-secondary">Kembali</a>
+            <button type="submit" class="btn btn-success">Perbarui</button>
         </div>
     </form>
 </div>

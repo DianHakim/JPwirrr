@@ -26,12 +26,12 @@ Route::prefix('kategori')->name('productcategory.')->group(function () {
 });
 
 Route::prefix('produk')->name('products.')->group(function () {
-    Route::get('/', [ProductController::class, 'index'])->name('index');           // tampil data produk
-    Route::get('/create', [ProductController::class, 'create'])->name('create');   // form tambah produk
-    Route::post('/', [ProductController::class, 'store'])->name('store');          // simpan produk baru
-    Route::get('/{id}/edit', [ProductController::class, 'edit'])->name('edit');    // form edit produk
-    Route::put('/{id}', [ProductController::class, 'update'])->name('update');     // update produk
-    Route::delete('/{id}', [ProductController::class, 'destroy'])->name('destroy');// hapus produk
+    Route::get('/', [ProductController::class, 'index'])->name('index');
+    Route::get('/create', [ProductController::class, 'create'])->name('create');
+    Route::post('/', [ProductController::class, 'store'])->name('store');
+    Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');   // ubah di sini
+    Route::put('/{product}', [ProductController::class, 'update'])->name('update');    // ubah di sini
+    Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
 });
 
 

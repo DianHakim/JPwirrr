@@ -7,7 +7,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <form action="{{ route('products.index') }}" method="GET" class="d-flex">
             <input type="text" name="search" value="{{ $search }}" class="form-control me-2" placeholder="Cari Produk">
-            <button type="submit" class="btn btn-outline-primary">Cari</button>
+            <button type="submit" class="btn btn-outline-success">Cari</button>
         </form>
         <a href="{{ route('products.create') }}" class="btn btn-primary">Tambah Produk</a>
     </div>
