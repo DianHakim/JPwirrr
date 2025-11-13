@@ -8,7 +8,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('stock_logs', function (Blueprint $table) {
-            $table->id(); // id
+            $table->id();
             $table->unsignedBigInteger('product_id');
             $table->integer('before');
             $table->integer('after');

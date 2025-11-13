@@ -8,7 +8,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('product_categories', function (Blueprint $table) {
-            $table->id(); // id
+            $table->id();
             $table->string('name');
             $table->timestamps();
         });

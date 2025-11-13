@@ -8,7 +8,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('transactions', function (Blueprint $table) {
-            $table->id(); // id
+            $table->id();
             $table->unsignedBigInteger('user_id');
             $table->decimal('trs_subtotal', 12, 2)->default(0);
             $table->decimal('trs_total', 12, 2)->default(0);

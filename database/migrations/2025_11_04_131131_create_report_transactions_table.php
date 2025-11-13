@@ -8,7 +8,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('report_transactions', function (Blueprint $table) {
-            $table->id(); // id
+            $table->id();
             $table->unsignedBigInteger('transaction_id');
             $table->unsignedBigInteger('product_id')->nullable();
             $table->decimal('dtr_subtotal', 12, 2);
