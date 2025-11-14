@@ -32,6 +32,9 @@ Route::prefix('produk')->name('products.')->group(function () {
     Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');   // ubah di sini
     Route::put('/{product}', [ProductController::class, 'update'])->name('update');    // ubah di sini
     Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
+    Route::get('/tambah-stok', [ProductController::class, 'addStockPage'])->name('addstock');
+    Route::post('/tambah-stok', [ProductController::class, 'addStock'])->name('addstock.store');
+    Route::get('/stock-history', [ProductController::class, 'stockHistory'])->name('stockhistory');
 });
 
 

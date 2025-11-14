@@ -15,10 +15,6 @@
 
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label class="form-label">Stok</label>
-                <input type="number" name="prd_stock" value="{{ old('prd_stock', $product->prd_stock) }}" class="form-control" required>
-            </div>
-            <div class="col-md-6 mb-3">
                 <label class="form-label">Harga</label>
                 <input type="number" name="prd_price" value="{{ old('prd_price', $product->prd_price) }}" class="form-control" required>
             </div>

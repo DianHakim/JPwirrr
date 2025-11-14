@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\StockLog;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
@@ -92,7 +93,6 @@ class ProductController extends Controller
         $request->validate([
             'prd_name' => 'required|string|max:255',
             'prd_price' => 'required|numeric',
-            'prd_stock' => 'required|integer',
             'prd_color' => 'nullable|string|max:50',
             'prd_size' => 'nullable|string|max:10',
             'pdc_id' => 'required|exists:product_categories,id',
@@ -110,7 +110,6 @@ class ProductController extends Controller
         $product->update([
             'prd_name' => $request->prd_name,
             'prd_price' => $request->prd_price,
-            'prd_stock' => $request->prd_stock,
             'prd_color' => $request->prd_color,
             'prd_size' => $request->prd_size,
             'pdc_id' => $request->pdc_id,
@@ -118,6 +117,46 @@ class ProductController extends Controller
         ]);
 
         return redirect()->route('products.index')->with('success', 'Produk berhasil diperbarui.');
+    }
+
+    public function addStockPage()
+    {
+        $products = \App\Models\Product::all();
+        return view('Products.addstock', compact('products'));
+    }
+
+    public function addStock(Request $request)
+    {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'amount' => 'required|integer|min:1'
+        ]);
+
+        $product = Product::findOrFail($request->product_id);
+
+        $before = $product->prd_stock;
+        $after = $product->prd_stock + $request->amount;
+
+        // Update stok
+        $product->prd_stock = $after;
+        $product->save();
+
+        // Simpan log
+        \App\Models\StockLog::create([
+            'product_id' => $product->id,
+            'before'     => $before,
+            'after'      => $after,
+            'description' => 'Penambahan stok sebanyak ' . $request->amount,
+        ]);
+
+        return redirect()->route('products.index')->with('success', 'Stok berhasil ditambahkan!');
+    }
+
+    public function stockHistory()
+    {
+        $logs = StockLog::with('product')->latest()->paginate(20);
+
+        return view('products.stock_history', compact('logs'));
     }
 
     /**
