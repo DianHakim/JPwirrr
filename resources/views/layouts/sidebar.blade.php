@@ -40,6 +40,13 @@
                         <span>Produk</span>
                     </a>
                 </li>
+                {{-- Transaksi --}}
+                <li class="sidebar-item {{ request()->routeIs('transactions.*') ? 'active' : '' }}">
+                    <a href="{{ route('transactions.index') }}" class="sidebar-link d-flex align-items-center">
+                        <i class="bi bi-cash-stack me-2"></i>
+                        <span>Transaksi</span>
+                    </a>
+                </li>
             </ul>
         </div>
 

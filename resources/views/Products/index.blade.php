@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container-fluid px-4">
-    <h4 class="fw-bold mb-3">Produk</h4>
+    <h1 class="fw-bold mb-3">Produk</h1>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
 
@@ -15,7 +15,7 @@
         {{-- Tombol kanan --}}
         <div class="d-flex gap-2">
             <a href="{{ route('products.stockhistory') }}" class="btn btn-dark">History Stok</a>
-            <a href="{{ route('products.addstock') }}" class="btn btn-success">Tambah Stok</a>
+            <a href="{{ route('products.addstock') }}" class="btn btn-info">Tambah Stok</a>
             <a href="{{ route('products.create') }}" class="btn btn-primary">Tambah Produk</a>
         </div>
 
@@ -28,7 +28,7 @@
 
     {{-- TABEL PRODUK MODERN --}}
     <div class="table-responsive bg-white rounded shadow-sm p-3">
-        <table class="table align-middle">
+        <table class="table align-middle table-hover text-center">
             <thead class="table-light">
                 <tr>
                     <th>Foto</th>
@@ -38,7 +38,7 @@
                     <th>Ukuran</th>
                     <th>Kategori</th>
                     <th>Harga</th>
-                    <th class="text-end">Aksi</th>
+                    <th class="width: 25%">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -57,12 +57,12 @@
                     {{-- STOK DENGAN WARNA --}}
                     <td>
                         @if($product->prd_stock == 0)
-                            <span class="badge bg-danger">Habis</span>
+                        <span class="badge bg-danger">Habis</span>
                         @elseif($product->prd_stock < 10)
                             <span class="badge bg-danger text-dark">{{ $product->prd_stock }}</span>
-                        @else
+                            @else
                             <span class="badge bg-success">{{ $product->prd_stock }}</span>
-                        @endif
+                            @endif
                     </td>
 
                     <td>{{ $product->prd_color ?? '-' }}</td>
@@ -71,18 +71,18 @@
                     {{-- KATEGORI DENGAN BADGE WARNA --}}
                     <td>
                         @php
-                            $cat = $product->category->name ?? '-';
-                            $color = match($cat) {
-                                default => 'primary',
-                            };
+                        $cat = $product->category->name ?? '-';
+                        $color = match($cat) {
+                        default => 'purple',
+                        };
                         @endphp
                         <span class="badge bg-{{ $color }}">{{ $cat }}</span>
                     </td>
 
                     <td>Rp {{ number_format($product->prd_price, 0, ',', '.') }}</td>
 
-                    <td class="text-end">
-                        <a href="{{ route('products.edit', $product->id) }}" class="btn btn-sm btn-warning">Edit</a>
+                    <td class="text-center">
+                        <a href="{{ route('products.edit', $product->id) }}" class="btn btn-sm btn-warning me-2">Edit</a>
 
                         {{-- TOMBOL HAPUS PAKAI MODAL --}}
                         <button class="btn btn-danger btn-sm"
@@ -168,11 +168,13 @@
 <script>
     const deleteModal = document.getElementById('deleteModal');
 
-    deleteModal.addEventListener('show.bs.modal', function (event) {
+    deleteModal.addEventListener('show.bs.modal', function(event) {
         const button = event.relatedTarget;
         const id = button.getAttribute('data-id');
         const form = document.getElementById('deleteForm');
-        form.action = "/products/" + id;
+
+        // auto generate URL sesuai route web.php
+        form.action = "{{ route('products.destroy', ':id') }}".replace(':id', id);
     });
 </script>
 

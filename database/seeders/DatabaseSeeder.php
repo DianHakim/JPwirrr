@@ -17,102 +17,158 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // user
+        // ======================================
+        // USER
+        // ======================================
         $user = User::create([
             'name' => 'Admin JP',
             'email' => 'admin@jp.com',
             'password' => Hash::make('12345'),
         ]);
 
-        // categories
-        $cat1 = ProductCategory::create(['name' => 'Baju']);
-        $cat2 = ProductCategory::create(['name' => 'Celana']);
-        $cat3 = ProductCategory::create(['name' => 'Aksesoris']);
+        // ======================================
+        // CATEGORIES
+        // ======================================
+        $categoryNames = [
+            'Baju', 'Celana', 'Aksesoris', 'Sepatu', 'Topi', 'Tas', 'Jaket', 'Hoodie', 'Kemeja', 'Celana Pendek'
+        ];
 
-        // products
-        $item1 = Product::create([
-            'prd_name' => 'Kaos Hitam',
-            'prd_price' => 50000,
-            'prd_stock' => 20,
-            'prd_color' => 'Hitam',
-            'prd_size' => 'L',
-            'prd_photo' => 'products/kaos-jp.jpg',
-            'pdc_id' => $cat1->id,
-        ]);
+        $categories = [];
+        foreach ($categoryNames as $name) {
+            $categories[$name] = ProductCategory::create(['name' => $name]);
+        }
 
-        $item2 = Product::create([
-            'prd_name' => 'Kaos Putih',
-            'prd_price' => 45000,
-            'prd_stock' => 30,
-            'prd_color' => 'Putih',
-            'prd_size' => 'M',
-            'prd_photo' => 'products/hoodie-anak.jpg',
-            'pdc_id' => $cat1->id,
-        ]);
+        // ======================================
+        // PRODUCTS - stok awal tinggi (50–100)
+        // ======================================
+        $productData = [
+            ['Kaos Hitam Polos',50000,rand(50,100),'Hitam','M','Baju'],
+            ['Kaos Putih Lengan Panjang',60000,rand(50,100),'Putih','L','Baju'],
+            ['Hoodie Abu-Abu',120000,rand(50,100),'Abu-Abu','L','Hoodie'],
+            ['Jaket Jeans',180000,rand(50,100),'Biru','M','Jaket'],
+            ['Kemeja Flanel Merah',90000,rand(50,100),'Merah','L','Kemeja'],
+            ['Celana Jeans Slim Fit',120000,rand(50,100),'Biru','32','Celana'],
+            ['Celana Chino Coklat',110000,rand(50,100),'Coklat','32','Celana'],
+            ['Celana Pendek Hitam',75000,rand(50,100),'Hitam','M','Celana Pendek'],
+            ['Topi Baseball',40000,rand(50,100),'Hitam','All','Topi'],
+            ['Tas Ransel',150000,rand(50,100),'Biru','All','Tas'],
+            ['Sepatu Sneakers Putih',250000,rand(50,100),'Putih','42','Sepatu'],
+            ['Sandal Jepit',50000,rand(50,100),'Coklat','42','Sepatu'],
+            ['Kacamata Hitam',80000,rand(50,100),'Hitam','All','Aksesoris'],
+            ['Gelang Kulit',60000,rand(50,100),'Coklat','All','Aksesoris'],
+            ['Kalung Stainless',70000,rand(50,100),'Silver','All','Aksesoris'],
+            ['Kaos Polo Navy',90000,rand(50,100),'Biru','L','Baju'],
+            ['Hoodie Hitam',130000,rand(50,100),'Hitam','M','Hoodie'],
+            ['Jaket Bomber Hijau',200000,rand(50,100),'Hijau','L','Jaket'],
+            ['Celana Jogger Abu',95000,rand(50,100),'Abu-Abu','M','Celana'],
+            ['Topi Bucket',50000,rand(50,100),'Krem','All','Topi'],
+        ];
 
-        $item3 = Product::create([
-            'prd_name' => 'Celana Jeans',
-            'prd_price' => 120000,
-            'prd_stock' => 15,
-            'prd_color' => 'Biru',
-            'prd_size' => '32',
-            'prd_photo' => 'products/hoodie-anak.jpg',
-            'pdc_id' => $cat2->id,
-        ]);
+        $products = [];
+        foreach ($productData as $data) {
+            [$name, $price, $stock, $color, $size, $catName] = $data;
+            $products[] = Product::create([
+                'prd_name' => $name,
+                'prd_price' => $price,
+                'prd_stock' => $stock,
+                'prd_color' => $color,
+                'prd_size' => $size,
+                'prd_photo' => 'products/default.jpg',
+                'pdc_id' => $categories[$catName]->id,
+            ]);
+        }
 
-        // transaction header
-        $transaction = Transaction::create([
-            'user_id' => $user->id,
-            'trs_subtotal' => 170000,
-            'trs_total' => 170000,
-            'payment_method' => 'CASH',
-        ]);
+        // ======================================
+        // DUMMY TRANSACTIONS + RESTOCK
+        // ======================================
+        $allProducts = Product::all();
+        $dates = [];
+        for($d=50; $d>=1; $d--){
+            $dates[] = Carbon::now()->subDays($d);
+        }
 
-        // details
-        TransactionDetail::create([
-            'transaction_id' => $transaction->id,
-            'product_id' => $item1->id,
-            'qty' => 2,
-            'price_at_sale' => $item1->prd_price,
-            'subtotal' => 100000,
-        ]);
+        foreach($dates as $date){
+            // Tentukan 50% transaksi penjualan, 50% restock
+            if(rand(0,1) == 0){
+                // Penjualan
+                $itemCount = rand(1, 3);
+                $picked = $allProducts->random($itemCount);
+                $subtotal = 0;
 
-        TransactionDetail::create([
-            'transaction_id' => $transaction->id,
-            'product_id' => $item3->id,
-            'qty' => 1,
-            'price_at_sale' => $item3->prd_price,
-            'subtotal' => 120000,
-        ]);
+                $trx = Transaction::create([
+                    'user_id'=>$user->id,
+                    'trs_subtotal'=>0,
+                    'trs_total'=>0,
+                    'payment_method'=>['CASH','TRANSFER','QRIS'][rand(0,2)],
+                    'created_at'=>$date,
+                    'updated_at'=>$date,
+                ]);
 
-        // report transactions
-        ReportTransaction::create([
-            'transaction_id' => $transaction->id,
-            'product_id' => $item1->id,
-            'dtr_subtotal' => 100000,
-            'dtr_period' => Carbon::now()->format('Y-m-d'),
-        ]);
+                foreach($picked as $p){
+                    if($p->prd_stock <=0) continue;
+                    $qty = rand(1, min(3,$p->prd_stock));
+                    $sub = $qty*$p->prd_price;
+                    $subtotal += $sub;
 
-        ReportTransaction::create([
-            'transaction_id' => $transaction->id,
-            'product_id' => $item3->id,
-            'dtr_subtotal' => 120000,
-            'dtr_period' => Carbon::now()->format('Y-m-d'),
-        ]);
+                    TransactionDetail::create([
+                        'transaction_id'=>$trx->id,
+                        'product_id'=>$p->id,
+                        'qty'=>$qty,
+                        'price_at_sale'=>$p->prd_price,
+                        'subtotal'=>$sub,
+                        'created_at'=>$date,
+                        'updated_at'=>$date,
+                    ]);
 
-        // stock logs (seeded before -> after)
-        StockLog::create([
-            'product_id' => $item1->id,
-            'before' => 20,
-            'after' => 18,
-            'description' => 'Seeded sale',
-        ]);
+                    ReportTransaction::create([
+                        'transaction_id'=>$trx->id,
+                        'product_id'=>$p->id,
+                        'dtr_subtotal'=>$sub,
+                        'dtr_period'=>$date->format('Y-m-d'),
+                        'created_at'=>$date,
+                        'updated_at'=>$date,
+                    ]);
 
-        StockLog::create([
-            'product_id' => $item3->id,
-            'before' => 15,
-            'after' => 14,
-            'description' => 'Seeded sale',
-        ]);
+                    $before = $p->prd_stock;
+                    $after = $before - $qty;
+                    StockLog::create([
+                        'product_id'=>$p->id,
+                        'before'=>$before,
+                        'after'=>$after,
+                        'description'=>"Barang keluar $qty pcs",
+                        'created_at'=>$date,
+                        'updated_at'=>$date,
+                    ]);
+
+                    $p->update(['prd_stock'=>$after]);
+                }
+
+                $trx->update([
+                    'trs_subtotal'=>$subtotal,
+                    'trs_total'=>$subtotal,
+                ]);
+            } else {
+                // Restock
+                $itemCount = rand(1, 3);
+                $picked = $allProducts->random($itemCount);
+
+                foreach($picked as $p){
+                    $qty = rand(5, 20);
+                    $before = $p->prd_stock;
+                    $after = $before + $qty;
+
+                    StockLog::create([
+                        'product_id'=>$p->id,
+                        'before'=>$before,
+                        'after'=>$after,
+                        'description'=>"Penambahan stok $qty pcs",
+                        'created_at'=>$date,
+                        'updated_at'=>$date,
+                    ]);
+
+                    $p->update(['prd_stock'=>$after]);
+                }
+            }
+        }
     }
 }

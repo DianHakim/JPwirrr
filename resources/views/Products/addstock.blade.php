@@ -3,7 +3,7 @@
 @section('content')
 <div class="container p-4">
 
-    <h2 class="mb-4">Tambah Stok Produk</h2>
+    <h1 class="fw-bold mb-3">Tambah Stok Produk</h1>
 
     <div class="card shadow p-4">
         <form action="{{ route('products.addstock.store') }}" method="POST">
@@ -12,7 +12,7 @@
             <div class="mb-3">
                 <label class="form-label">Pilih Produk</label>
                 <select name="product_id" class="form-control" required>
-                    <option value="">-- Pilih Produk --</option>
+                    <option value=""> Pilih Produk </option>
                     @foreach($products as $product)
                         <option value="{{ $product->id }}">
                             {{ $product->prd_name }} (Stok: {{ $product->prd_stock }})

@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container-fluid px-4">
-    <h4 class="fw-bold mb-3">Edit Produk</h4>
+    <h1 class="fw-bold mb-3">Edit Produk</h1>
 
     <form action="{{ route('products.update', $product->id) }}" method="POST" enctype="multipart/form-data" class="bg-white p-4 rounded shadow-sm">
         @csrf
@@ -14,7 +14,7 @@
         </div>
 
         <div class="row">
-            <div class="col-md-6 mb-3">
+            <div class="mb-3">
                 <label class="form-label">Harga</label>
                 <input type="number" name="prd_price" value="{{ old('prd_price', $product->prd_price) }}" class="form-control" required>
             </div>

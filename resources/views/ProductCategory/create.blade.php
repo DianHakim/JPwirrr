@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid bg-light-purple min-vh-100 p-4">
-    <h1 class="mt-3">Tambah Kategori</h1>
+<div class="container-fluid bg-light-purple min-vh-100 px-4">
+    <h1 class="fw-bold mb-3">Tambah Kategori</h1>
 
     <div class="card shadow border-0 rounded-4">
         <div class="card-body p-4">

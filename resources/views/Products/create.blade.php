@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container-fluid px-4">
-    <h4 class="fw-bold mb-3">Tambah Produk</h4>
+    <h1 class="fw-bold mb-3">Tambah Produk</h1>
 
     <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" class="bg-white p-4 rounded shadow-sm">
         @csrf

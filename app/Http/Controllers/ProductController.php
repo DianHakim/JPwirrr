@@ -119,12 +119,18 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Produk berhasil diperbarui.');
     }
 
+    /**
+     * Halaman tambah stok produk
+     */
     public function addStockPage()
     {
-        $products = \App\Models\Product::all();
-        return view('Products.addstock', compact('products'));
+        $products = Product::all();
+        return view('products.addstock', compact('products'));
     }
 
+    /**
+     * Tambah stok produk
+     */
     public function addStock(Request $request)
     {
         $request->validate([
@@ -135,26 +141,29 @@ class ProductController extends Controller
         $product = Product::findOrFail($request->product_id);
 
         $before = $product->prd_stock;
-        $after = $product->prd_stock + $request->amount;
+        $after = $before + $request->amount;
 
         // Update stok
         $product->prd_stock = $after;
         $product->save();
 
-        // Simpan log
-        \App\Models\StockLog::create([
+        // Simpan log stok
+        StockLog::create([
             'product_id' => $product->id,
-            'before'     => $before,
-            'after'      => $after,
-            'description' => 'Penambahan stok sebanyak ' . $request->amount,
+            'before' => $before,
+            'after' => $after,
+            'description' => 'Penambahan stok ' . $request->amount . ' pcs',
         ]);
 
         return redirect()->route('products.index')->with('success', 'Stok berhasil ditambahkan!');
     }
 
+    /**
+     * Riwayat stok produk, diurutkan dari terbaru ke lama
+     */
     public function stockHistory()
     {
-        $logs = StockLog::with('product')->latest()->paginate(20);
+        $logs = StockLog::with('product')->orderBy('id', 'desc')->paginate(20);
 
         return view('products.stock_history', compact('logs'));
     }

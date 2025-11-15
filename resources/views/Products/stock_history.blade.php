@@ -14,7 +14,7 @@
             <table class="table table-hover text-center align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th>#</th>
+                        <th>Id</th>
                         <th>Produk</th>
                         <th>Sebelum</th>
                         <th>Sesudah</th>
@@ -23,21 +23,22 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($logs as $index => $log)
-                        <tr>
-                            <td>{{ $logs->firstItem() + $index }}</td>
-                            <td>{{ $log->product->prd_name }}</td>
-                            <td>{{ $log->before }}</td>
-                            <td>{{ $log->after }}</td>
-                            <td>{{ $log->description }}</td>
-                            <td>{{ $log->created_at->format('d M Y H:i') }}</td>
-                        </tr>
+                    @forelse ($logs as $log)
+                    <tr>
+                        <td>{{ $log->id }}</td>
+                        <td>{{ $log->product->prd_name }}</td>
+                        <td>{{ $log->before }}</td>
+                        <td>{{ $log->after }}</td>
+                        <td>{{ $log->description }}</td>
+                        <td>{{ $log->created_at->format('d M Y H:i') }}</td>
+                    </tr>
                     @empty
-                        <tr>
-                            <td colspan="6" class="text-muted">Belum ada riwayat stok</td>
-                        </tr>
+                    <tr>
+                        <td colspan="6" class="text-muted">Belum ada riwayat stok</td>
+                    </tr>
                     @endforelse
                 </tbody>
+
             </table>
 
             <div class="mt-3">
