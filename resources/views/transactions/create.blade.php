@@ -11,9 +11,7 @@
                 @csrf
 
                 <!-- HIDDEN DISCOUNT & CASH FIELDS -->
-                <input type="hidden" name="discount_type" id="discount_type" value="none">
-                <input type="hidden" name="discount_percent" id="discount_percent" value="0">
-                <input type="hidden" name="discount_nominal" id="discount_nominal" value="0">
+                <input type="hidden" name="trs_discount" id="trs_discount" value="0">
                 <input type="hidden" name="cash" id="cashInput" value="0">
 
                 <table class="table table-bordered text-center">
@@ -386,29 +384,24 @@
         document.getElementById('cashInput').value = bayar;
 
         // RESET SEMUA DISCOUNT HIDDEN
-        let dtype = "none";
-        let dPercent = 0;
         let dNominal = 0;
-
         const subtotal = toNumber(modalSubtotalEl.dataset.value);
 
+        // persen
         if (discountPercentRadio.checked) {
-            dtype = "percent";
-            dPercent = toNumber(discountPercentInput.value);
-            dNominal = Math.floor(subtotal * dPercent / 100); // HITUNG NOMINAL DARI PERSEN
+            const pct = toNumber(discountPercentInput.value);
+            dNominal = Math.floor(subtotal * pct / 100);
         }
 
+        // nominal
         if (discountNominalRadio.checked) {
-            dtype = "nominal";
-            dPercent = 0;
             dNominal = toNumber(discountNominalInput.value);
         }
 
-        // KIRIM KE BACKEND
-        document.getElementById('discount_type').value = dtype;
-        document.getElementById('discount_percent').value = dPercent;
-        document.getElementById('discount_nominal').value = dNominal;
+        // kirim hanya trs_discount
+        document.getElementById('trs_discount').value = dNominal;
 
+        // === SUBMIT FORM DI SINI ===
         document.getElementById('trxForm').submit();
     });
 

@@ -13,9 +13,6 @@ use Illuminate\Support\Facades\DB;
 
 class TransactionController extends Controller
 {
-    // ============================
-    // LIST TRANSAKSI
-    // ============================
     public function index(Request $request)
     {
         $query = Transaction::with('user');
@@ -23,10 +20,10 @@ class TransactionController extends Controller
         if ($request->search) {
             $query->where(function ($q) use ($request) {
                 $q->where('trs_code', 'like', "%{$request->search}%")
-                  ->orWhere('payment_method', 'like', "%{$request->search}%")
-                  ->orWhereHas('user', function ($q2) use ($request) {
-                      $q2->where('name', 'like', "%{$request->search}%");
-                  });
+                    ->orWhere('payment_method', 'like', "%{$request->search}%")
+                    ->orWhereHas('user', function ($q2) use ($request) {
+                        $q2->where('name', 'like', "%{$request->search}%");
+                    });
             });
         }
 
@@ -34,9 +31,6 @@ class TransactionController extends Controller
         return view('transactions.index', compact('transactions'));
     }
 
-    // ============================
-    // FORM TRANSAKSI BARU
-    // ============================
     public function create()
     {
         $products = Product::orderBy('prd_name')->get();
@@ -44,135 +38,111 @@ class TransactionController extends Controller
     }
 
     // ============================
-    // SIMPAN TRANSAKSI
+    // SIMPAN TRANSAKSI (FINAL)
     // ============================
     public function store(Request $request)
-{
-    $request->validate([
-        'items' => 'required|array|min:1',
-        'payment_method' => 'required|string',
-        'cash' => 'nullable|numeric|min:0',
-        'discount_type' => 'nullable|string|in:none,percent,nominal',
-        'discount_percent' => 'nullable|numeric|min:0|max:100',
-        'discount_nominal' => 'nullable|numeric|min:0',
-    ]);
-
-    $items = $request->items;
-
-    // VALIDASI STOK
-    foreach ($items as $item) {
-        $product = Product::find($item['product_id']);
-        if (!$product) return back()->withErrors(['msg' => 'Produk tidak ditemukan.']);
-        if ($product->prd_stock < $item['qty']) {
-            return back()->withErrors(['msg' => "Stok tidak cukup untuk produk {$product->prd_name}."]);
-        }
-    }
-
-    DB::beginTransaction();
-    try {
-
-        // HITUNG SUBTOTAL
-        $subtotal = 0;
-        foreach ($items as $item) {
-            $subtotal += $item['qty'] * $item['price'];
-        }
-
-        // HITUNG DISKON
-        $discountType = $request->discount_type ?? 'none';
-        $discountPercent = $request->discount_percent ?? 0;
-        $discountNominal = 0;
-
-        if ($discountType === 'percent') {
-            $discountNominal = floor($subtotal * $discountPercent / 100);
-        } elseif ($discountType === 'nominal') {
-            $discountNominal = $request->discount_nominal ?? 0;
-        }
-
-        if ($discountNominal > $subtotal) $discountNominal = $subtotal;
-
-        $totalAfterDiscount = $subtotal - $discountNominal;
-
-        // CASH & CHANGE
-        $cash = $request->cash ?? 0;
-        $change = $cash - $totalAfterDiscount;
-
-        if ($change < 0 && $request->payment_method === 'cash') {
-            return back()->withErrors(['msg' => 'Uang tunai tidak cukup!']);
-        }
-
-        // ================= SIMPAN TRANSAKSI =================
-        $transaction = Transaction::create([
-            'user_id' => Auth::id(),
-            'trs_subtotal' => $subtotal,
-            'trs_total' => $totalAfterDiscount,
-
-            // PEMANGGILAN HARUS SAMA DENGAN BLADE DAN DATABASE
-            'discount_type' => $discountType,
-            'discount_percent' => $discountType === 'percent' ? $discountPercent : 0,
-            'discount_nominal' => $discountNominal,
-
-            'payment_method' => $request->payment_method,
-            'cash' => $cash,
-            'change' => $change,
+    {
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'payment_method' => 'required|string',
+            'cash' => 'nullable|numeric|min:0',
+            'trs_discount' => 'nullable|numeric|min:0', // ⬅ cuma ini aja
         ]);
 
-        // ================= SIMPAN DETAIL =================
+        $items = $request->items;
+
+        // CEK STOK
         foreach ($items as $item) {
-            $product = Product::lockForUpdate()->find($item['product_id']);
-            $before = $product->prd_stock;
-            $after = $before - $item['qty'];
-
-            TransactionDetail::create([
-                'transaction_id' => $transaction->id,
-                'product_id' => $product->id,
-                'qty' => $item['qty'],
-                'price_at_sale' => $item['price'],
-                'subtotal' => $item['qty'] * $item['price']
-            ]);
-
-            $product->update(['prd_stock' => $after]);
-
-            StockLog::create([
-                'product_id' => $product->id,
-                'before' => $before,
-                'after' => $after,
-                'description' => 'Transaksi #' . $transaction->trs_code . ' - Barang keluar ' . $item['qty'] . ' pcs'
-            ]);
+            $product = Product::find($item['product_id']);
+            if (!$product) return back()->withErrors(['msg' => 'Produk tidak ditemukan.']);
+            if ($product->prd_stock < $item['qty']) {
+                return back()->withErrors(['msg' => "Stok tidak cukup untuk produk {$product->prd_name}."]);
+            }
         }
 
-        DB::commit();
-        return redirect()->route('transactions.show', $transaction->id)
-                         ->with('success', 'Transaksi berhasil disimpan!');
+        DB::beginTransaction();
+        try {
 
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return back()->withErrors(['msg' => 'Terjadi kesalahan: ' . $e->getMessage()]);
+            // HITUNG SUBTOTAL
+            $subtotal = 0;
+            foreach ($items as $item) {
+                $subtotal += $item['qty'] * $item['price'];
+            }
+
+            // DISKON FINAL (SUDAH DALAM BENTUK NOMINAL)
+            $discount = $request->trs_discount ?? 0;
+            if ($discount > $subtotal) $discount = $subtotal;
+
+            // TOTAL
+            $total = $subtotal - $discount;
+
+            // CASH & KEMBALIAN
+            $cash = $request->cash ?? 0;
+            $change = $cash - $total;
+
+            if ($request->payment_method === 'cash' && $change < 0) {
+                return back()->withErrors(['msg' => 'Uang tunai tidak cukup!']);
+            }
+
+            // SIMPAN TRANSAKSI
+            $transaction = Transaction::create([
+                'user_id'       => Auth::id(),
+                'trs_subtotal'  => $subtotal,
+                'trs_discount'  => $discount,
+                'trs_total'     => $total,
+                'payment_method' => $request->payment_method,
+                'cash'          => $cash,
+                'change'        => $change,
+            ]);
+
+            // DETAIL ITEM + STOCK
+            foreach ($items as $item) {
+                $product = Product::lockForUpdate()->find($item['product_id']);
+                $before = $product->prd_stock;
+                $after = $before - $item['qty'];
+
+                TransactionDetail::create([
+                    'transaction_id' => $transaction->id,
+                    'product_id' => $product->id,
+                    'qty' => $item['qty'],
+                    'price_at_sale' => $item['price'],
+                    'subtotal' => $item['qty'] * $item['price']
+                ]);
+
+                $product->update(['prd_stock' => $after]);
+
+                StockLog::create([
+                    'product_id' => $product->id,
+                    'before' => $before,
+                    'after' => $after,
+                    'description' => 'Transaksi #' . $transaction->trs_code . ' - Barang keluar ' . $item['qty'] . ' pcs'
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()->route('transactions.show', $transaction->id)
+                ->with('success', 'Transaksi berhasil disimpan!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['msg' => 'Terjadi kesalahan: ' . $e->getMessage()]);
+        }
     }
-}
 
-    // ============================
-    // DETAIL TRANSAKSI
-    // ============================
     public function show($id)
     {
         $transaction = Transaction::with(['details.product', 'user'])->findOrFail($id);
         return view('transactions.show', compact('transaction'));
     }
 
-    // ============================
-    // CETAK STRUK PDF
-    // ============================
     public function printPDF($id)
     {
         $transaction = Transaction::with(['details.product', 'user'])->findOrFail($id);
         $pdf = Pdf::loadView('transactions.print-pdf', compact('transaction'))
-                  ->setPaper([0, 0, 283, 600]);
+            ->setPaper([0, 0, 283, 600]);
         return $pdf->stream('struk_' . $transaction->trs_code . '.pdf');
     }
 
-    // ============================
-    // HAPUS TRANSAKSI
-    // ============================
     public function destroy($id)
     {
         DB::beginTransaction();

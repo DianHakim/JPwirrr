@@ -40,11 +40,20 @@
                         <span>Produk</span>
                     </a>
                 </li>
+
                 {{-- Transaksi --}}
                 <li class="sidebar-item {{ request()->routeIs('transactions.*') ? 'active' : '' }}">
                     <a href="{{ route('transactions.index') }}" class="sidebar-link d-flex align-items-center">
                         <i class="bi bi-cash-stack me-2"></i>
                         <span>Transaksi</span>
+                    </a>
+                </li>
+
+                {{-- Laporan --}}
+                <li class="sidebar-item {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+                    <a href="{{ route('reports.index') }}" class="sidebar-link d-flex align-items-center">
+                        <i class="bi bi-file-earmark-bar-graph me-2"></i>
+                        <span>Laporan</span>
                     </a>
                 </li>
             </ul>

@@ -38,37 +38,33 @@
 
     <div class="line"></div>
 
-    @php
-        $discountType = $transaction->discount_type ?? 'none';
-        $discountPercent = $transaction->discount_percent ?? 0;
-        $discountNominal = $transaction->discount_nominal ?? 0;
-    @endphp
-
     <table style="font-size:13px;">
         <tr>
             <td>Subtotal :</td>
             <td class="right">Rp {{ number_format($transaction->trs_subtotal,0,',','.') }}</td>
         </tr>
+
         <tr>
             <td>Diskon :</td>
             <td class="right">
-                @if($discountType === 'percent')
-                    {{ $discountPercent }}% (Rp {{ number_format($discountNominal,0,',','.') }})
-                @elseif($discountType === 'nominal')
-                    Rp {{ number_format($discountNominal,0,',','.') }}
+                @if($transaction->trs_discount > 0)
+                    - Rp {{ number_format($transaction->trs_discount,0,',','.') }}
                 @else
                     Rp 0
                 @endif
             </td>
         </tr>
+
         <tr class="bold">
             <td>Total :</td>
             <td class="right">Rp {{ number_format($transaction->trs_total,0,',','.') }}</td>
         </tr>
+
         <tr>
             <td>Tunai :</td>
             <td class="right">Rp {{ number_format($transaction->cash ?? 0,0,',','.') }}</td>
         </tr>
+
         <tr>
             <td>Kembali :</td>
             <td class="right">Rp {{ number_format($transaction->change ?? 0,0,',','.') }}</td>

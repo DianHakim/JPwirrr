@@ -20,7 +20,6 @@ class Transaction extends Model
         'change',
     ];
 
-    // RELATIONS
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -31,21 +30,21 @@ class Transaction extends Model
         return $this->hasMany(TransactionDetail::class, 'transaction_id');
     }
 
-    // ================= BOOT METHOD =================
+    public function reportDetails()
+    {
+        return $this->hasMany(ReportTransaction::class);
+    }
+
     protected static function boot()
     {
         parent::boot();
 
-        // generate trs_code otomatis jika belum ada
         static::creating(function ($trx) {
             if (!$trx->trs_code) {
                 $trx->trs_code = 'TRX-' . time() . rand(1000, 9999);
             }
 
-            // pastikan diskon default tersimpan
-            if (!$trx->discount_type) $trx->discount_type = 'none';
-            if (!$trx->discount_percent) $trx->discount_percent = 0;
-            if (!$trx->discount_nominal) $trx->discount_nominal = 0;
+            if (!$trx->trs_discount) $trx->trs_discount = 0;
         });
     }
 }

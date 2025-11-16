@@ -45,17 +45,7 @@
 
             @php
                 $subtotal = $transaction->trs_subtotal;
-
-                // SISTEM LAMA
-                $oldDiscount = $transaction->trs_discount ?? 0;
-
-                // SISTEM BARU
-                $discountType    = $transaction->discount_type ?? 'none';
-                $discountPercent = $transaction->discount_percent ?? 0;
-                $discountNominal = $transaction->discount_nominal ?? 0;
-
-                // FINAL DISCOUNT (ambil mana yang terisi)
-                $finalDiscount = $discountNominal > 0 ? $discountNominal : $oldDiscount;
+                $discount = $transaction->trs_discount ?? 0;
             @endphp
 
             <div class="mt-3 text-end">
@@ -65,19 +55,14 @@
                 </h5>
 
                 {{-- DISKON --}}
-                @if($finalDiscount > 0)
+                @if($discount > 0)
                     <h5 class="mb-1">
                         Diskon:
-                        <span class="text-danger fw-bold">- {{ rupiah($finalDiscount) }}</span>
-
-                        {{-- Kalau ternyata tipe persen, tampilkan persen juga --}}
-                        @if($discountType == 'percent' && $discountPercent > 0)
-                            ({{ $discountPercent }}%)
-                        @endif
+                        <span class="text-danger fw-bold">- {{ rupiah($discount) }}</span>
                     </h5>
                 @else
-                    <h5 class="mb-1">Diskon: 
-                        <span class="fw-bold">Tidak Ada</span>
+                    <h5 class="mb-1">
+                        Diskon: <span class="fw-bold">Tidak Ada</span>
                     </h5>
                 @endif
 

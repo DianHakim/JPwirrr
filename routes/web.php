@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\ReportTransactionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -46,6 +47,12 @@ Route::prefix('transaksi')->name('transactions.')->middleware('auth')->group(fun
     Route::get('/transactions/{id}/print-pdf', [TransactionController::class, 'printPDF'])->name('print-pdf');
     Route::get('/{id}', [TransactionController::class, 'show'])->name('show');
     Route::delete('/{id}', [TransactionController::class, 'destroy'])->name('destroy');
+});
+
+Route::prefix('reports')->name('reports.')->group(function () {
+    Route::get('/', [ReportTransactionController::class, 'index'])->name('index');
+    Route::get('/pdf', [ReportTransactionController::class, 'exportPDF'])->name('pdf');
+    Route::get('/{id}', [ReportTransactionController::class, 'show'])->name('show');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
