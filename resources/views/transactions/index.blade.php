@@ -18,7 +18,7 @@
 
         {{-- Tombol Tambah Transaksi --}}
         <a href="{{ route('transactions.create') }}" class="btn btn-success px-4">
-            <i class="bi bi-plus-circle me-1"></i> Tambah Transaksi
+            <i></i> Tambah Transaksi
         </a>
     </div>
 
@@ -47,15 +47,6 @@
                         <td>
                             <a href="{{ route('transactions.show', $t->id) }}"
                                 class="btn btn-sm btn-info text-white px-3">Detail</a>
-
-                            <a href="{{ route('transactions.print', $t->id) }}"
-                                class="btn btn-sm btn-dark px-3" target="_blank">Print</a>
-
-                            <form action="{{ route('transactions.destroy', $t->id) }}" method="POST" class="d-inline">
-                                @csrf @method('DELETE')
-                                <button onclick="return confirm('Hapus transaksi ini?')"
-                                    class="btn btn-sm btn-danger px-3">Hapus</button>
-                            </form>
                         </td>
                     </tr>
                     @empty

@@ -13,7 +13,8 @@ Route::get('/', function () {
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.process');
 
-Route::get('/dashboard', function () { return view('dashboard');
+Route::get('/dashboard', function () {
+    return view('dashboard');
 })->middleware('auth')->name('dashboard');
 
 Route::prefix('kategori')->name('productcategory.')->middleware('auth')->group(function () {
@@ -41,7 +42,8 @@ Route::prefix('transaksi')->name('transactions.')->middleware('auth')->group(fun
     Route::get('/', [TransactionController::class, 'index'])->name('index');
     Route::get('/create', [TransactionController::class, 'create'])->name('create');
     Route::post('/', [TransactionController::class, 'store'])->name('store');
-    Route::get('/{id}/print', [TransactionController::class, 'print'])->name('print');
+    Route::get('/transactions/{id}/print', [TransactionController::class, 'print'])->name('print');
+    Route::get('/transactions/{id}/print-pdf', [TransactionController::class, 'printPDF'])->name('print-pdf');
     Route::get('/{id}', [TransactionController::class, 'show'])->name('show');
     Route::delete('/{id}', [TransactionController::class, 'destroy'])->name('destroy');
 });

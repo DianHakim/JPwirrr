@@ -3,17 +3,21 @@
 @section('content')
 <div class="container-fluid px-4">
 
-    <h4 class="fw-bold mb-3">Detail Transaksi #{{ $transaction->id }}</h4>
+    <h1 class="fw-bold mb-3">Detail Transaksi #{{ $transaction->trs_code }}</h1>
 
     <div class="card shadow border-0 rounded-4">
         <div class="card-body p-4">
 
+            {{-- INFO TRANSAKSI --}}
             <div class="mb-3">
                 <strong>Kasir:</strong> {{ $transaction->user->name }} <br>
                 <strong>Tanggal:</strong> {{ $transaction->created_at->format('d M Y H:i') }} <br>
-                <strong>Metode Pembayaran:</strong> {{ strtoupper($transaction->payment_method) }}
+                <strong>Metode Pembayaran:</strong> {{ strtoupper($transaction->payment_method) }} <br>
+                <strong>Tunai:</strong> Rp {{ number_format($transaction->cash ?? 0, 0, ',', '.') }} <br>
+                <strong>Kembalian:</strong> Rp {{ number_format($transaction->change ?? 0, 0, ',', '.') }}
             </div>
 
+            {{-- DETAIL PRODUK --}}
             <table class="table table-bordered text-center">
                 <thead class="table-light">
                     <tr>
@@ -24,25 +28,67 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @php 
+                        function rupiah($num) { return 'Rp ' . number_format($num, 0, ',', '.'); }
+                    @endphp
+
                     @foreach ($transaction->details as $d)
-                    <tr>
-                        <td>{{ $d->product->name }}</td>
-                        <td>{{ $d->qty }}</td>
-                        <td>Rp {{ number_format($d->price_at_sale, 0, ',', '.') }}</td>
-                        <td>Rp {{ number_format($d->subtotal, 0, ',', '.') }}</td>
-                    </tr>
+                        <tr>
+                            <td>{{ $d->product->prd_name }}</td>
+                            <td>{{ $d->qty }}</td>
+                            <td>{{ rupiah($d->price_at_sale) }}</td>
+                            <td>{{ rupiah($d->subtotal) }}</td>
+                        </tr>
                     @endforeach
                 </tbody>
             </table>
 
-            <h4 class="text-end mt-3">Total: 
-                <span class="text-success">Rp {{ number_format($transaction->trs_total,0,',','.') }}</span>
-            </h4>
+            @php
+                $subtotal = $transaction->trs_subtotal;
+
+                // SISTEM LAMA
+                $oldDiscount = $transaction->trs_discount ?? 0;
+
+                // SISTEM BARU
+                $discountType    = $transaction->discount_type ?? 'none';
+                $discountPercent = $transaction->discount_percent ?? 0;
+                $discountNominal = $transaction->discount_nominal ?? 0;
+
+                // FINAL DISCOUNT (ambil mana yang terisi)
+                $finalDiscount = $discountNominal > 0 ? $discountNominal : $oldDiscount;
+            @endphp
+
+            <div class="mt-3 text-end">
+
+                <h5 class="mb-1">
+                    Subtotal: <span class="fw-bold">{{ rupiah($subtotal) }}</span>
+                </h5>
+
+                {{-- DISKON --}}
+                @if($finalDiscount > 0)
+                    <h5 class="mb-1">
+                        Diskon:
+                        <span class="text-danger fw-bold">- {{ rupiah($finalDiscount) }}</span>
+
+                        {{-- Kalau ternyata tipe persen, tampilkan persen juga --}}
+                        @if($discountType == 'percent' && $discountPercent > 0)
+                            ({{ $discountPercent }}%)
+                        @endif
+                    </h5>
+                @else
+                    <h5 class="mb-1">Diskon: 
+                        <span class="fw-bold">Tidak Ada</span>
+                    </h5>
+                @endif
+
+                <h4 class="mt-3">
+                    Total Bayar: 
+                    <span class="text-success fw-bold">{{ rupiah($transaction->trs_total) }}</span>
+                </h4>
+            </div>
 
             <div class="d-flex justify-content-end mt-4">
-                <a href="{{ route('transactions.print', $transaction->id) }}" 
-                   class="btn btn-dark px-4 me-2" target="_blank">Print</a>
-
+                <a href="{{ route('transactions.print-pdf', $transaction->id) }}" class="btn btn-dark px-4 me-2" target="_blank">Print</a>
                 <a href="{{ route('transactions.index') }}" class="btn btn-secondary px-4">Kembali</a>
             </div>
 
