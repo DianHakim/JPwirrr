@@ -11,6 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('transaction_id');
             $table->unsignedBigInteger('product_id')->nullable();
+            $table->string('product_name')->nullable();
             $table->integer('qty')->default(0);
             $table->decimal('price_at_sale', 12, 2)->default(0);
             $table->decimal('dtr_subtotal', 12, 2);

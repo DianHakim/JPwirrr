@@ -10,12 +10,13 @@ return new class extends Migration {
         Schema::create('transaction_details', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('transaction_id');
-            $table->unsignedBigInteger('product_id');
+            $table->unsignedBigInteger('product_id')->nullable();
+            $table->string('product_name')->nullable();
             $table->integer('qty')->default(1);
             $table->decimal('price_at_sale', 12, 2);
             $table->decimal('subtotal', 12, 2);
             $table->foreign('transaction_id')->references('id')->on('transactions')->cascadeOnDelete();
-            $table->foreign('product_id')->references('id')->on('products')->cascadeOnDelete();
+            $table->foreign('product_id')->references('id')->on('products')->nullOnDelete();
             $table->timestamps();
         });
     }
@@ -25,4 +26,3 @@ return new class extends Migration {
         Schema::dropIfExists('transaction_details');
     }
 };
- 

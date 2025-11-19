@@ -42,7 +42,7 @@
                     <tr>
                         <td>{{ \Carbon\Carbon::parse($r->dtr_period)->format('d M Y') }}</td>
                         <td>{{ $r->transaction->trs_code }}</td>
-                        <td>{{ $r->product->prd_name ?? '-' }}</td>
+                        <td>{{ $r->product->prd_name ?? $r->product_name }}</td>
                         <td>Rp {{ number_format($r->dtr_subtotal, 0, ',', '.') }}</td>
                     </tr>
                     @empty

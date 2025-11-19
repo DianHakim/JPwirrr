@@ -124,6 +124,7 @@ class DatabaseSeeder extends Seeder
                     TransactionDetail::create([
                         'transaction_id' => $trx->id,
                         'product_id' => $p->id,
+                        'product_name' => $p->prd_name,
                         'qty' => $qty,
                         'price_at_sale' => $p->prd_price,
                         'subtotal' => $sub,
@@ -135,6 +136,7 @@ class DatabaseSeeder extends Seeder
                     ReportTransaction::create([
                         'transaction_id' => $trx->id,
                         'product_id' => $p->id,
+                        'product_name' => $p->prd_name,
                         'dtr_subtotal' => $sub,
                         'dtr_period' => $date->format('Y-m-d'),
                         'created_at' => $date,

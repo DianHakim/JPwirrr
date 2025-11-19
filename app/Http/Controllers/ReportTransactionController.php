@@ -56,6 +56,7 @@ class ReportTransactionController extends Controller
             ReportTransaction::create([
                 'transaction_id' => $trx->id,
                 'product_id'     => $detail->product_id,
+                'product_name'   => $detail->product_name,
                 'dtr_subtotal'   => $detail->subtotal,
                 'dtr_period'     => now()->toDateString(),
             ]);

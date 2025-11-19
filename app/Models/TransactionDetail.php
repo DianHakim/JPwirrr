@@ -14,6 +14,7 @@ class TransactionDetail extends Model
     protected $fillable = [
         'transaction_id',
         'product_id',
+        'product_name',
         'qty',
         'price_at_sale',
         'subtotal',
@@ -28,6 +29,8 @@ class TransactionDetail extends Model
     // Detail ke produknya
     public function product()
     {
-        return $this->belongsTo(Product::class, 'product_id');
+        return $this->belongsTo(Product::class)->withDefault([
+            'prd_name' => $this->product_name
+        ]);
     }
 }

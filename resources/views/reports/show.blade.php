@@ -53,7 +53,7 @@
                 <tbody>
                     @foreach ($data as $item)
                         <tr>
-                            <td>{{ $item->product->prd_name ?? '-' }}</td>
+                            <td>{{ $d->product->prd_name ?? $r->product_name }}</td>
                             <td>Rp {{ number_format($item->dtr_subtotal, 0, ',', '.') }}</td>
                             <td>{{ \Carbon\Carbon::parse($item->dtr_period)->format('d M Y') }}</td>
                         </tr>

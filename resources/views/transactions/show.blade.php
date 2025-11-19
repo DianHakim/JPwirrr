@@ -34,7 +34,7 @@
 
                     @foreach ($transaction->details as $d)
                         <tr>
-                            <td>{{ $d->product->prd_name }}</td>
+                            <td>{{ $d->product->prd_name ?? $d->product_name }}</td>
                             <td>{{ $d->qty }}</td>
                             <td>{{ rupiah($d->price_at_sale) }}</td>
                             <td>{{ rupiah($d->subtotal) }}</td>

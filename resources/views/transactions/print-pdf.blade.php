@@ -30,7 +30,7 @@
         @foreach($transaction->details as $d)
         <tr>
             <td>{{ $d->qty }} x</td>
-            <td>{{ $d->product->prd_name }}</td>
+            <td>{{ $d->product->prd_name ?? $d->product_name }}</td>
             <td class="right">Rp {{ number_format($d->subtotal,0,',','.') }}</td>
         </tr>
         @endforeach

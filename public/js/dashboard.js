@@ -1,7 +1,4 @@
-// Sidebar Collapse
-document.getElementById('sidebarToggle').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('collapsed');
-});
+
 
 // Theme Toggle
 const body = document.body;

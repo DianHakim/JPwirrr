@@ -91,6 +91,25 @@
     </div>
 </div>
 
+<!-- ================== MODAL STOK HANYA SISA ================== -->
+<div class="modal fade" id="qtyStockModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Stok Tidak Cukup</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="qtyStockMessage" class="mb-0"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <!-- ================== MODAL PEMBAYARAN ================== -->
 <div class="modal fade" id="payModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -272,6 +291,11 @@
         }
     });
 
+    function closeStockModal() {
+        document.getElementById('stockErrorModal').style.display = 'none';
+        window.location.reload();
+    }
+
     // ================= MODAL LOGIC =================
     const payInput = document.getElementById('payInput');
     const payError = document.getElementById('payError');
@@ -308,6 +332,39 @@
         recalcDiscountPreview();
         const modal = new bootstrap.Modal(document.getElementById('payModal'));
         modal.show();
+    });
+
+    // ================== CEK STOK SAAT QTY DIUBAH ==================
+    document.addEventListener("input", function(e) {
+        if (e.target.classList.contains("qtyInput")) {
+
+            const tr = e.target.closest("tr");
+            const select = tr.querySelector(".productSelect");
+            const selected = select.selectedOptions[0];
+
+            if (!selected || selected.value === "") {
+                calcAll();
+                return;
+            }
+
+            const stock = parseInt(selected.getAttribute("data-stock"));
+            let qty = parseInt(e.target.value);
+
+            if (qty > stock) {
+                // Set qty kembali ke stok maksimal
+                e.target.value = stock;
+
+                // Isi pesan modals
+                document.getElementById("qtyStockMessage").innerText =
+                    `Stok produk hanya tersisa ${stock}. Tidak bisa menambah lebih dari itu.`;
+
+                // Tampilkan modal
+                const modal = new bootstrap.Modal(document.getElementById("qtyStockModal"));
+                modal.show();
+            }
+
+            calcAll();
+        }
     });
 
     document.querySelectorAll('.discountMode').forEach(r => {

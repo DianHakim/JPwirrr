@@ -27,7 +27,7 @@
             <table class="table align-middle table-hover text-center">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 10%">ID</th>
+                        <th style="width: 10%">No</th>
                         <th>Nama Kategori</th>
                         <th style="width: 25%">Aksi</th>
                     </tr>
