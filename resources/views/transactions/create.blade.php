@@ -28,18 +28,34 @@
                     <tbody id="itemsBody">
                         <tr>
                             <td>
-                                <select class="form-select productSelect" name="items[0][product_id]" required>
-                                    <option value="">Pilih Produk</option>
+                                <select class="form-select productSelect d-none" name="items[0][product_id]" required>
+                                    <option value="">-- Pilih Produk --</option>
                                     @foreach ($products as $p)
-                                    <option
-                                        value="{{ $p->id }}"
+                                    <option value="{{ $p->id }}"
                                         data-price="{{ $p->prd_price }}"
+                                        data-name="{{ $p->prd_name }}"
                                         data-stock="{{ $p->prd_stock }}">
-                                        {{ $p->prd_name }} - Rp {{ number_format($p->prd_price, 0, ',', '.') }}
+                                        {{ $p->prd_name }}
                                     </option>
                                     @endforeach
                                 </select>
-                                <div class="invalid-feedback">Pilih produk terlebih dahulu.</div>
+
+                                <div class="position-relative">
+                                    <input type="text" class="form-control productSearch" placeholder="Cari produk…" autocomplete="off">
+
+                                    <ul class="list-group position-absolute w-100 productList d-none"
+                                        style="z-index:10; max-height:180px; overflow-y:auto;">
+                                        @foreach ($products as $p)
+                                        <li class="list-group-item productItem"
+                                            data-id="{{ $p->id }}"
+                                            data-name="{{ $p->prd_name }}"
+                                            data-price="{{ $p->prd_price }}"
+                                            data-stock="{{ $p->prd_stock }}">
+                                            {{ $p->prd_name }} - Rp {{ number_format($p->prd_price, 0, ',', '.') }}
+                                        </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
                             </td>
 
                             <td>
@@ -110,358 +126,460 @@
 </div>
 
 
+
 <!-- ================== MODAL PEMBAYARAN ================== -->
 <div class="modal fade" id="payModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 shadow">
+            
             <div class="modal-header">
                 <h5 class="modal-title">Pembayaran</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
+
+                <!-- SUBTOTAL -->
                 <label class="form-label fw-bold">Subtotal:</label>
-                <div class="mb-2"><strong id="modalSubtotal" data-value="0">Rp 0</strong></div>
+                <div class="mb-2">
+                    <strong id="modalSubtotal" data-value="0">Rp 0</strong>
+                </div>
 
                 <!-- DISKON -->
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Diskon</label>
+
                     <div class="d-flex gap-3">
                         <div class="form-check">
-                            <input class="form-check-input discountMode" type="radio" name="discount_mode" id="discount_none" value="none" checked>
+                            <input class="form-check-input discountMode" type="radio" 
+                                   name="discount_mode" id="discount_none" value="none" checked>
                             <label class="form-check-label" for="discount_none">Tidak</label>
                         </div>
 
                         <div class="form-check">
-                            <input class="form-check-input discountMode" type="radio" name="discount_mode" id="discount_percent_radio" value="percent">
+                            <input class="form-check-input discountMode" type="radio" 
+                                   name="discount_mode" id="discount_percent_radio" value="percent">
                             <label class="form-check-label" for="discount_percent_radio">Persen (%)</label>
                         </div>
 
                         <div class="form-check">
-                            <input class="form-check-input discountMode" type="radio" name="discount_mode" id="discount_nominal_radio" value="nominal">
+                            <input class="form-check-input discountMode" type="radio" 
+                                   name="discount_mode" id="discount_nominal_radio" value="nominal">
                             <label class="form-check-label" for="discount_nominal_radio">Nominal (Rp)</label>
                         </div>
                     </div>
 
                     <div class="mt-2 d-flex gap-2">
-                        <input type="number" class="form-control" id="discountPercent" placeholder="0 %" min="0" max="100" disabled>
-                        <input type="number" class="form-control" id="discountNominal" placeholder="Rp 0" min="0" disabled>
+                        <input type="number" class="form-control" id="discountPercent" 
+                               placeholder="0 %" min="0" max="100" disabled>
+
+                        <input type="number" class="form-control" id="discountNominal" 
+                               placeholder="Rp 0" min="0" disabled>
                     </div>
                 </div>
 
                 <hr>
 
+                <!-- TOTAL DISKON -->
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Total Setelah Diskon</label>
+
                     <div class="d-flex justify-content-between align-items-center p-2 rounded" style="background:#f8f9fa;">
                         <div id="finalTotalText" class="fw-bold">Rp 0</div>
                         <div id="appliedDiscountText" class="text-muted">Diskon: Rp 0</div>
                     </div>
                 </div>
 
+                <!-- INPUT PEMBAYARAN -->
                 <div class="mb-3">
                     <label class="form-label">Uang Diterima</label>
-                    <input type="number" class="form-control" id="payInput" placeholder="Masukkan nominal" min="0" required>
-                    <div id="payError" class="text-danger mt-2 d-none">Nominal kurang dari total!</div>
+
+                    <input type="number" class="form-control" id="payInput" 
+                           placeholder="Masukkan nominal" min="0" required>
+
+                    <!-- ERROR: BAYAR < TOTAL -->
+                    <div id="payError" class="text-danger mt-2 d-none">
+                        Nominal kurang dari total!
+                    </div>
+
+                    <!-- ERROR: MAX LIMIT 1 MILIAR -->
+                    <div id="cashLimitText" class="text-danger mt-2 d-none">
+                        Nominal pembayaran tidak boleh lebih dari 1.000.000.000 (1 miliar). Mohon kurangi.
+                    </div>
                 </div>
 
+                <!-- KEMBALIAN -->
                 <div class="mb-2">
                     <label class="form-label fw-semibold">Kembalian</label>
-                    <div class="d-flex justify-content-between align-items-center p-2 rounded" style="background:#f8f9fa;">
+
+                    <div class="d-flex justify-content-between align-items-center p-2 rounded" 
+                         style="background:#f8f9fa;">
                         <div id="changeText" class="fw-bold">Rp 0</div>
                         <div id="changeStatus" class="badge bg-secondary">Belum bayar</div>
                     </div>
                 </div>
+
             </div>
 
             <div class="modal-footer">
                 <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                 <button class="btn btn-primary" id="confirmPayBtn">Konfirmasi Pembayaran</button>
             </div>
+
         </div>
     </div>
 </div>
 
 <!-- ================== SCRIPT ================== -->
 <script>
-    function formatRupiah(num) {
-        if (!num || isNaN(num)) return 'Rp 0';
-        return 'Rp ' + new Intl.NumberFormat('id-ID').format(num);
-    }
+/* ============================================================
+   ====================== FORMAT & UTILS ========================
+===============================================================*/
 
-    function toNumber(v) {
-        const n = parseInt(v, 10);
-        return isNaN(n) ? 0 : n;
-    }
+function formatRupiah(num) {
+    if (!num || isNaN(num)) return 'Rp 0';
+    return 'Rp ' + new Intl.NumberFormat('id-ID').format(num);
+}
 
-    let row = 1;
+function toNumber(v) {
+    const n = parseInt(v, 10);
+    return isNaN(n) ? 0 : n;
+}
 
-    document.getElementById('addRow').addEventListener('click', () => {
-        const body = document.getElementById('itemsBody');
-        const firstRow = body.children[0];
-        const newRow = firstRow.cloneNode(true);
-        newRow.querySelector('.productSelect').selectedIndex = 0;
-        newRow.querySelector('.qtyInput').value = 1;
-        newRow.querySelector('.priceInput').value = "";
-        newRow.querySelector('.subtotalInput').value = "";
-        newRow.querySelectorAll('select, input').forEach(el => {
-            const name = el.getAttribute('name');
-            if (name) el.setAttribute('name', name.replace(/\[\d+\]/, `[${row}]`));
-        });
-        body.appendChild(newRow);
-        row++;
-        calcAll();
+let row = 1;
+
+/* ============================================================
+   ====================== ADD NEW ROW ==========================
+===============================================================*/
+document.getElementById('addRow').addEventListener('click', () => {
+    const body = document.getElementById('itemsBody');
+    const firstRow = body.children[0];
+    const newRow = firstRow.cloneNode(true);
+
+    newRow.querySelector('.productSelect').value = "";
+    newRow.querySelector('.productSearch').value = "";
+    newRow.querySelector('.productList').classList.add("d-none");
+
+    newRow.querySelector('.qtyInput').value = 1;
+    newRow.querySelector('.priceInput').value = "";
+    newRow.querySelector('.subtotalInput').value = "";
+
+    newRow.querySelectorAll('select, input').forEach(el => {
+        const name = el.getAttribute('name');
+        if (name) el.setAttribute('name', name.replace(/\[\d+\]/, `[${row}]`));
     });
 
-    function calcAll() {
-        let total = 0;
-        document.querySelectorAll('#itemsBody tr').forEach((tr) => {
-            const select = tr.querySelector('.productSelect');
-            let price = 0;
-            if (select && select.selectedIndex > 0) {
-                price = toNumber(select.selectedOptions[0].dataset.price);
-            }
-            let qty = toNumber(tr.querySelector('.qtyInput').value);
-            if (qty < 1) {
-                qty = 1;
-                tr.querySelector('.qtyInput').value = 1;
-            }
-            tr.querySelector('.priceInput').value = price;
-            tr.querySelector('.subtotalInput').value = price * qty;
-            total += price * qty;
-        });
-        document.getElementById('totalText').textContent = formatRupiah(total);
-        document.getElementById('modalSubtotal').dataset.value = total;
-        document.getElementById('modalSubtotal').innerText = formatRupiah(total);
-        recalcDiscountPreview();
-    }
+    body.appendChild(newRow);
+    row++;
+    calcAll();
+});
 
-    document.addEventListener('input', function(e) {
-        if (e.target.classList.contains('qtyInput')) {
-            if (toNumber(e.target.value) < 1) e.target.value = 1;
-            calcAll();
+/* ============================================================
+   ====================== HITUNG TOTAL =========================
+===============================================================*/
+function calcAll() {
+    let total = 0;
+
+    document.querySelectorAll('#itemsBody tr').forEach((tr) => {
+        const select = tr.querySelector('.productSelect');
+        let price = 0;
+
+        if (select && select.value !== "") {
+            price = toNumber(select.selectedOptions[0].dataset.price);
         }
+
+        let qty = toNumber(tr.querySelector('.qtyInput').value);
+        if (qty < 0 || isNaN(qty)) qty = 0;
+
+        tr.querySelector('.priceInput').value = price;
+        tr.querySelector('.subtotalInput').value = price * qty;
+
+        total += price * qty;
     });
 
-    document.addEventListener('change', function(e) {
-        if (e.target.classList.contains('productSelect')) {
-            const tr = e.target.closest("tr");
-            const selected = e.target.selectedOptions[0];
-            if (!selected || selected.value === "") {
-                tr.querySelector('.priceInput').value = "";
-                tr.querySelector('.subtotalInput').value = "";
-                calcAll();
-                return;
-            }
-            let duplicate = false;
-            document.querySelectorAll('.productSelect').forEach(s => {
-                if (s !== e.target && s.value === e.target.value) duplicate = true;
-            });
-            if (duplicate) {
-                alert('Produk sudah dipilih di baris lain!');
-                e.target.selectedIndex = 0;
-                tr.querySelector('.priceInput').value = "";
-                tr.querySelector('.subtotalInput').value = "";
-                calcAll();
-                return;
-            }
-            const stock = toNumber(selected.getAttribute('data-stock') || 0);
-            if (stock === 0) {
-                alert('Stok produk habis!');
-                e.target.selectedIndex = 0;
-                tr.querySelector('.priceInput').value = "";
-                tr.querySelector('.subtotalInput').value = "";
-                calcAll();
-                return;
-            }
-            tr.querySelector('.qtyInput').value = 1;
-            tr.querySelector('.priceInput').value = selected.dataset.price;
-            tr.querySelector('.subtotalInput').value = selected.dataset.price;
-            calcAll();
-        }
-    });
+    document.getElementById('totalText').textContent = formatRupiah(total);
+    document.getElementById('modalSubtotal').dataset.value = total;
+    document.getElementById('modalSubtotal').innerText = formatRupiah(total);
 
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('removeRow')) {
-            const rows = document.querySelectorAll('#itemsBody tr');
-            if (rows.length > 1) {
-                e.target.closest('tr').remove();
-                calcAll();
-            }
-        }
-    });
+    recalcDiscountPreview();
+}
 
-    function closeStockModal() {
-        document.getElementById('stockErrorModal').style.display = 'none';
-        window.location.reload();
-    }
+/* ============================================================
+   ====================== QTY INPUT ============================
+===============================================================*/
+document.addEventListener('input', function(e) {
+    if (!e.target.classList.contains('qtyInput')) return;
 
-    // ================= MODAL LOGIC =================
-    const payInput = document.getElementById('payInput');
-    const payError = document.getElementById('payError');
-    const changeText = document.getElementById('changeText');
-    const changeStatus = document.getElementById('changeStatus');
-    const modalSubtotalEl = document.getElementById('modalSubtotal');
-    const discountNoneRadio = document.getElementById('discount_none');
-    const discountPercentRadio = document.getElementById('discount_percent_radio');
-    const discountNominalRadio = document.getElementById('discount_nominal_radio');
-    const discountPercentInput = document.getElementById('discountPercent');
-    const discountNominalInput = document.getElementById('discountNominal');
-    const finalTotalText = document.getElementById('finalTotalText');
-    const appliedDiscountText = document.getElementById('appliedDiscountText');
+    let raw = e.target.value.replace(/[^0-9]/g, "");
+    e.target.value = raw;
 
-    document.getElementById('openPayModal').addEventListener('click', () => {
-        const form = document.getElementById('trxForm');
-        if (!form.checkValidity()) {
-            form.classList.add('was-validated');
-            return;
-        }
-        calcAll();
-        const totalNum = toNumber(modalSubtotalEl.dataset.value);
-        modalSubtotalEl.innerText = formatRupiah(totalNum);
-        discountNoneRadio.checked = true;
-        discountPercentInput.value = '';
-        discountNominalInput.value = '';
-        discountPercentInput.disabled = true;
-        discountNominalInput.disabled = true;
-        payInput.value = '';
-        payError.classList.add('d-none');
-        changeText.innerText = formatRupiah(0);
-        changeStatus.innerText = 'Belum bayar';
-        changeStatus.className = 'badge bg-secondary';
-        recalcDiscountPreview();
-        const modal = new bootstrap.Modal(document.getElementById('payModal'));
-        modal.show();
-    });
+    const tr = e.target.closest("tr");
+    const select = tr.querySelector(".productSelect");
 
-    // ================== CEK STOK SAAT QTY DIUBAH ==================
-    document.addEventListener("input", function(e) {
-        if (e.target.classList.contains("qtyInput")) {
+    if (select && select.value !== "") {
+        const stock = parseInt(select.selectedOptions[0].dataset.stock);
+        let qty = raw === "" ? 0 : parseInt(raw);
 
-            const tr = e.target.closest("tr");
-            const select = tr.querySelector(".productSelect");
-            const selected = select.selectedOptions[0];
+        if (qty > stock) {
+            e.target.value = stock;
 
-            if (!selected || selected.value === "") {
-                calcAll();
-                return;
-            }
+            document.getElementById("qtyStockMessage").innerText =
+                `Stok produk hanya tersisa ${stock}.`;
 
-            const stock = parseInt(selected.getAttribute("data-stock"));
-            let qty = parseInt(e.target.value);
-
-            if (qty > stock) {
-                // Set qty kembali ke stok maksimal
-                e.target.value = stock;
-
-                // Isi pesan modals
-                document.getElementById("qtyStockMessage").innerText =
-                    `Stok produk hanya tersisa ${stock}. Tidak bisa menambah lebih dari itu.`;
-
-                // Tampilkan modal
-                const modal = new bootstrap.Modal(document.getElementById("qtyStockModal"));
-                modal.show();
-            }
-
-            calcAll();
-        }
-    });
-
-    document.querySelectorAll('.discountMode').forEach(r => {
-        r.addEventListener('change', () => {
-            if (discountPercentRadio.checked) {
-                discountPercentInput.disabled = false;
-                discountNominalInput.disabled = true;
-                discountNominalInput.value = '';
-            } else if (discountNominalRadio.checked) {
-                discountPercentInput.disabled = true;
-                discountNominalInput.disabled = false;
-                discountPercentInput.value = '';
-            } else {
-                discountPercentInput.disabled = true;
-                discountNominalInput.disabled = true;
-                discountPercentInput.value = '';
-                discountNominalInput.value = '';
-            }
-            recalcDiscountPreview();
-        });
-    });
-
-    function recalcDiscountPreview() {
-        const total = toNumber(modalSubtotalEl.dataset.value);
-        let discountValue = 0;
-        if (discountPercentRadio.checked) {
-            const pct = toNumber(discountPercentInput.value);
-            discountValue = Math.floor(total * pct / 100);
-            appliedDiscountText.innerText = `Diskon: ${pct}% → ${formatRupiah(discountValue)}`;
-        } else if (discountNominalRadio.checked) {
-            discountValue = toNumber(discountNominalInput.value);
-            appliedDiscountText.innerText = `Diskon: ${formatRupiah(discountValue)}`;
-        } else {
-            appliedDiscountText.innerText = 'Diskon: Rp 0';
-        }
-        const finalTotal = Math.max(total - discountValue, 0);
-        finalTotalText.innerText = formatRupiah(finalTotal);
-        updateChangePreview();
-    }
-
-    discountPercentInput.addEventListener('input', recalcDiscountPreview);
-    discountNominalInput.addEventListener('input', recalcDiscountPreview);
-
-    function updateChangePreview() {
-        const finalTotal = toNumber(finalTotalText.innerText.replace(/\D/g, ''));
-        const bayar = toNumber(payInput.value);
-        const kembali = bayar - finalTotal;
-        changeText.innerText = formatRupiah(Math.max(kembali, 0));
-        if (bayar >= finalTotal && bayar > 0) {
-            changeStatus.innerText = 'Cukup';
-            changeStatus.className = 'badge bg-success';
-            payError.classList.add('d-none');
-        } else if (bayar > 0 && bayar < finalTotal) {
-            changeStatus.innerText = 'Kurang';
-            changeStatus.className = 'badge bg-danger';
-            payError.classList.remove('d-none');
-        } else {
-            changeStatus.innerText = 'Belum bayar';
-            changeStatus.className = 'badge bg-secondary';
+            const modal = new bootstrap.Modal(document.getElementById("qtyStockModal"));
+            modal.show();
         }
     }
-
-    payInput.addEventListener('input', updateChangePreview);
-
-    document.getElementById('confirmPayBtn').addEventListener('click', () => {
-        const finalTotal = toNumber(finalTotalText.innerText.replace(/\D/g, ''));
-        const bayar = toNumber(payInput.value);
-        if (bayar < finalTotal) {
-            payError.classList.remove('d-none');
-            return;
-        }
-
-        // update cash hidden
-        document.getElementById('cashInput').value = bayar;
-
-        // RESET SEMUA DISCOUNT HIDDEN
-        let dNominal = 0;
-        const subtotal = toNumber(modalSubtotalEl.dataset.value);
-
-        // persen
-        if (discountPercentRadio.checked) {
-            const pct = toNumber(discountPercentInput.value);
-            dNominal = Math.floor(subtotal * pct / 100);
-        }
-
-        // nominal
-        if (discountNominalRadio.checked) {
-            dNominal = toNumber(discountNominalInput.value);
-        }
-
-        // kirim hanya trs_discount
-        document.getElementById('trs_discount').value = dNominal;
-
-        // === SUBMIT FORM DI SINI ===
-        document.getElementById('trxForm').submit();
-    });
 
     calcAll();
+});
+
+/* ============================================================
+   ==================== SEARCH PRODUK ==========================
+===============================================================*/
+document.addEventListener("input", function(e) {
+    if (!e.target.classList.contains("productSearch")) return;
+
+    const tr = e.target.closest("tr");
+    const list = tr.querySelector(".productList");
+    const keyword = e.target.value.toLowerCase();
+
+    list.classList.remove("d-none");
+
+    list.querySelectorAll(".productItem").forEach(item => {
+        const name = item.dataset.name.toLowerCase();
+        const stock = parseInt(item.dataset.stock);
+
+        item.style.display = (stock > 0 && name.includes(keyword)) ? "block" : "none";
+    });
+});
+
+/* ============================================================
+   ===================== PRODUK DIKLIK =========================
+===============================================================*/
+document.addEventListener("click", function(e) {
+    if (!e.target.classList.contains("productItem")) return;
+
+    const item = e.target;
+    const tr = item.closest("tr");
+
+    const id = item.dataset.id;
+    const name = item.dataset.name;
+    const price = item.dataset.price;
+    const stock = parseInt(item.dataset.stock);
+
+    let duplicate = false;
+    document.querySelectorAll('.productSelect').forEach(s => {
+        if (s !== tr.querySelector('.productSelect') && s.value == id) {
+            duplicate = true;
+        }
+    });
+
+    if (duplicate) return alert("Produk sudah dipilih di baris lain!");
+    if (stock === 0) return alert("Stok produk habis!");
+
+    tr.querySelector('.productSearch').value = name;
+
+    const select = tr.querySelector('.productSelect');
+    select.value = id;
+
+    const qtyInput = tr.querySelector('.qtyInput');
+    qtyInput.value = "1";
+    qtyInput.focus();
+    qtyInput.select();
+
+    tr.querySelector('.priceInput').value = price;
+    tr.querySelector('.subtotalInput').value = price;
+
+    tr.querySelector('.productList').classList.add("d-none");
+
+    calcAll();
+});
+
+/* ============================================================
+   =================== CLICK DI LUAR LIST ======================
+===============================================================*/
+document.addEventListener("click", function(e) {
+    if (!e.target.classList.contains("productSearch") &&
+        !e.target.classList.contains("productItem")) {
+        document.querySelectorAll('.productList').forEach(list => {
+            list.classList.add("d-none");
+        });
+    }
+});
+
+/* ============================================================
+   ===================== DELETE ROW ============================
+===============================================================*/
+document.addEventListener('click', function(e) {
+    if (!e.target.classList.contains('removeRow')) return;
+
+    const rows = document.querySelectorAll('#itemsBody tr');
+    if (rows.length > 1) {
+        e.target.closest('tr').remove();
+        calcAll();
+    }
+});
+
+/* ============================================================
+   ===================== MODAL PEMBAYARAN =======================
+===============================================================*/
+const payInput = document.getElementById('payInput');
+const payError = document.getElementById('payError');
+const changeText = document.getElementById('changeText');
+const changeStatus = document.getElementById('changeStatus');
+const modalSubtotalEl = document.getElementById('modalSubtotal');
+const discountNoneRadio = document.getElementById('discount_none');
+const discountPercentRadio = document.getElementById('discount_percent_radio');
+const discountNominalRadio = document.getElementById('discount_nominal_radio');
+const discountPercentInput = document.getElementById('discountPercent');
+const discountNominalInput = document.getElementById('discountNominal');
+const finalTotalText = document.getElementById('finalTotalText');
+const appliedDiscountText = document.getElementById('appliedDiscountText');
+
+/* -------- Open Modal --------*/
+document.getElementById('openPayModal').addEventListener('click', () => {
+    const form = document.getElementById('trxForm');
+    if (!form.checkValidity()) {
+        form.classList.add('was-validated');
+        return;
+    }
+
+    calcAll();
+
+    const totalNum = toNumber(modalSubtotalEl.dataset.value);
+    modalSubtotalEl.innerText = formatRupiah(totalNum);
+
+    discountNoneRadio.checked = true;
+    discountPercentInput.value = '';
+    discountNominalInput.value = '';
+    discountPercentInput.disabled = true;
+    discountNominalInput.disabled = true;
+
+    payInput.value = '';
+    payError.classList.add('d-none');
+    changeText.innerText = formatRupiah(0);
+    changeStatus.innerText = 'Belum bayar';
+    changeStatus.className = 'badge bg-secondary';
+
+    recalcDiscountPreview();
+
+    new bootstrap.Modal(document.getElementById('payModal')).show();
+});
+
+/* -------- Diskon Mode --------*/
+document.querySelectorAll('.discountMode').forEach(r => {
+    r.addEventListener('change', () => {
+        if (discountPercentRadio.checked) {
+            discountPercentInput.disabled = false;
+            discountNominalInput.disabled = true;
+            discountNominalInput.value = '';
+        } else if (discountNominalRadio.checked) {
+            discountPercentInput.disabled = true;
+            discountNominalInput.disabled = false;
+            discountPercentInput.value = '';
+        } else {
+            discountPercentInput.disabled = true;
+            discountNominalInput.disabled = true;
+            discountPercentInput.value = '';
+            discountNominalInput.value = '';
+        }
+        recalcDiscountPreview();
+    });
+});
+
+/* -------- Discount Preview --------*/
+function recalcDiscountPreview() {
+    const total = toNumber(modalSubtotalEl.dataset.value);
+    let discountValue = 0;
+
+    if (discountPercentRadio.checked) {
+        const pct = toNumber(discountPercentInput.value);
+        discountValue = Math.floor(total * pct / 100);
+        appliedDiscountText.innerText = `Diskon: ${pct}% → ${formatRupiah(discountValue)}`;
+    } else if (discountNominalRadio.checked) {
+        discountValue = toNumber(discountNominalInput.value);
+        appliedDiscountText.innerText = `Diskon: ${formatRupiah(discountValue)}`;
+    } else {
+        appliedDiscountText.innerText = 'Diskon: Rp 0';
+    }
+
+    const finalTotal = Math.max(total - discountValue, 0);
+    finalTotalText.innerText = formatRupiah(finalTotal);
+
+    updateChangePreview();
+}
+
+discountPercentInput.addEventListener('input', recalcDiscountPreview);
+discountNominalInput.addEventListener('input', recalcDiscountPreview);
+
+/* -------- Preview Kembalian --------*/
+function updateChangePreview() {
+    const finalTotal = toNumber(finalTotalText.innerText.replace(/\D/g, ''));
+    const bayar = toNumber(payInput.value);
+    const kembali = bayar - finalTotal;
+
+    changeText.innerText = formatRupiah(Math.max(kembali, 0));
+
+    if (bayar >= finalTotal && bayar > 0) {
+        changeStatus.innerText = 'Cukup';
+        changeStatus.className = 'badge bg-success';
+        payError.classList.add('d-none');
+    } else if (bayar > 0 && bayar < finalTotal) {
+        changeStatus.innerText = 'Kurang';
+        changeStatus.className = 'badge bg-danger';
+        payError.classList.remove('d-none');
+    } else {
+        changeStatus.innerText = 'Belum bayar';
+        changeStatus.className = 'badge bg-secondary';
+    }
+}
+
+/* -------- Limit Pembayaran --------*/
+payInput.addEventListener("input", function() {
+    let raw = payInput.value.replace(/[^0-9]/g, "");
+    payInput.value = raw;
+
+    let nominal = raw === "" ? 0 : parseInt(raw);
+
+    if (nominal > 1000000000) {
+        payInput.value = 1000000000;
+        alert("Nominal pembayaran maksimal 1.000.000.000 (1 miliar)");
+    }
+
+    updateChangePreview();
+});
+
+/* -------- Submit --------*/
+document.getElementById('confirmPayBtn').addEventListener('click', () => {
+    const finalTotal = toNumber(finalTotalText.innerText.replace(/\D/g, ''));
+    const bayar = toNumber(payInput.value);
+
+    if (bayar < finalTotal) {
+        payError.classList.remove('d-none');
+        return;
+    }
+
+    document.getElementById('cashInput').value = bayar;
+
+    let dNominal = 0;
+    const subtotal = toNumber(modalSubtotalEl.dataset.value);
+
+    if (discountPercentRadio.checked) {
+        dNominal = Math.floor(subtotal * toNumber(discountPercentInput.value) / 100);
+    }
+
+    if (discountNominalRadio.checked) {
+        dNominal = toNumber(discountNominalInput.value);
+    }
+
+    document.getElementById('trs_discount').value = dNominal;
+    document.getElementById('trxForm').submit();
+});
+
+/* ============================================================
+   ====================== INIT ================================
+===============================================================*/
+calcAll();
 </script>
 @endsection
