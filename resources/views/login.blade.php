@@ -61,19 +61,19 @@
             <div class="text-start mb-3">
                 <label for="email" class="form-label fw-semibold">Email</label>
                 <input type="email" class="form-control" name="email" id="email"
-                    placeholder="Enter Email" required />
+                    placeholder="Masukan Email" required />
             </div>
 
             <div class="text-start mb-3">
                 <label for="password" class="form-label fw-semibold">Password</label>
                 <input type="password" class="form-control" name="password" id="password"
-                    placeholder="Enter Password" required />
+                    placeholder="Masukan Password" required />
             </div>
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="remember" />
-                    <label class="form-check-label" for="remember">Remember this device</label>
+                    <label class="form-check-label" for="remember">Ingat perangkat ini</label>
                 </div>
             </div>
 

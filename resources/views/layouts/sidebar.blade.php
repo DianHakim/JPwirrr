@@ -1,14 +1,6 @@
 <div id="sidebar" class="active">
     <div class="sidebar-wrapper active collapse show" id="sidebarMenu">
 
-        <!-- TOMBOL COLLAPSE KIRI -->
-        <div class="position-absolute top-0 start-0 m-3">
-            <button class="btn p-0 border-0 bg-transparent toggle-btn">
-                <i class="bi bi-list fs-2"></i>
-            </button>
-        </div>
-        <!-- END TOMBOL COLLAPSE -->
-
         <div class="sidebar-header text-center position-relative mt-5">
             <div class="logo">
                 <a href="{{ route('dashboard') }}">
@@ -55,13 +47,21 @@
                         <span>Laporan</span>
                     </a>
                 </li>
+
+                <li class="sidebar-item {{ request()->routeIs('profile') ? 'active' : '' }}">
+                    <a href="{{ route('profile') }}" class="sidebar-link d-flex align-items-center">
+                        <i class="bi bi-person-circle me-2"></i>
+                        <span>Akun</span>
+                    </a>
+                </li>
             </ul>
         </div>
 
+        <!-- Tombol Logout -->
         <div class="p-3 border-top">
-            <form action="{{ route('logout') }}" method="POST">
+            <form action="{{ route('logout') }}" method="POST" id="logoutForm">
                 @csrf
-                <button type="submit" class="btn btn-danger w-100 d-flex align-items-center justify-content-center">
+                <button type="button" id="openLogoutModal" class="btn btn-danger w-100 d-flex align-items-center justify-content-center">
                     <i class="bi bi-box-arrow-right me-2"></i> <span>Logout</span>
                 </button>
             </form>
@@ -70,69 +70,46 @@
     </div>
 </div>
 
-<style>
-    /* Sidebar normal */
-    #sidebar {
-        width: 260px;
-        transition: width .3s ease;
-        overflow: hidden;
-    }
+<!-- LOGOUT MODAL (DI LUAR SIDEBAR WAJIB!) -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow">
 
-    /* Sidebar mengecil (collapse) */
-    #sidebar.collapsed {
-        width: 70px !important;
-    }
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Konfirmasi Logout</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
 
-    /* Teks hilang, tetapi icon tidak berubah posisi */
-    #sidebar.collapsed .sidebar-menu span,
-    #sidebar.collapsed .sidebar-title,
-    #sidebar.collapsed .p-3 form button span {
-        display: none !important;
-    }
+            <div class="modal-body">
+                <p class="mb-0">Apakah kamu yakin ingin logout?</p>
+            </div>
 
-    /* JANGAN PUSATKAN MENU — biarkan tetap rata kiri */
-    #sidebar .sidebar-link {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button class="btn btn-danger" id="confirmLogoutBtn">Logout</button>
+            </div>
 
-    /* Saat collapsed, ikon tetap di kiri */
-    #sidebar.collapsed .sidebar-link {
-        justify-content: flex-start !important;
-        padding-left: 20px !important;
-    }
-
-    /* Jangan ubah margin icon */
-    #sidebar.collapsed .sidebar-menu i {
-        margin-right: 0 !important;
-    }
-
-    /* Logo kecil, tapi tetap di tempat sama (tidak ke tengah) */
-    #sidebar.collapsed .sidebar-header {
-        text-align: left !important;
-        padding-left: 20px;
-    }
-
-    #sidebar.collapsed .logo img {
-        width: 45px;
-        height: 45px;
-    }
-
-    /* Logout tetap di bawah rata kiri */
-    #sidebar.collapsed .p-3 form button {
-        justify-content: flex-start !important;
-        padding-left: 20px !important;
-    }
-</style>
+        </div>
+    </div>
+</div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const sidebar = document.getElementById("sidebar");
-        const toggleBtn = document.querySelector(".toggle-btn");
+document.addEventListener("DOMContentLoaded", function () {
 
-        toggleBtn.addEventListener("click", function() {
-            sidebar.classList.toggle("collapsed");
-        });
+    const openModalBtn = document.getElementById("openLogoutModal");
+    const confirmBtn = document.getElementById("confirmLogoutBtn");
+    const logoutForm = document.getElementById("logoutForm");
+
+    // Buka modal
+    openModalBtn.addEventListener("click", function () {
+        const modal = new bootstrap.Modal(document.getElementById('logoutModal'));
+        modal.show();
     });
+
+    // Konfirmasi logout
+    confirmBtn.addEventListener("click", function () {
+        logoutForm.submit();
+    });
+
+});
 </script>

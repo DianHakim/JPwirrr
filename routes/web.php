@@ -5,6 +5,8 @@ use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\ReportTransactionController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -54,5 +56,10 @@ Route::prefix('reports')->name('reports.')->group(function () {
     Route::get('/pdf', [ReportTransactionController::class, 'exportPDF'])->name('pdf');
     Route::get('/{id}', [ReportTransactionController::class, 'show'])->name('show');
 });
+
+Route::get('/profile', [ProfileController::class, 'profile'])->name('profile');
+Route::post('/profile/update', [ProfileController::class, 'updateProfile'])->name('profile.update');
+Route::post('/profile/update-password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
