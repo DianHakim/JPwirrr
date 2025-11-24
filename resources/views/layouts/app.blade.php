@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Dashboard - JP Wear')</title>
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -29,23 +30,27 @@
             object-fit: contain;
         }
     </style>
+
+    @yield('styles')
 </head>
 
 <body>
     <div id="app">
 
-        {{-- Include Sidebar --}}
+        {{-- Sidebar --}}
         @include('layouts.sidebar')
 
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
                 const sidebar = document.getElementById('sidebar');
                 const toggleBtn = document.getElementById('sidebarToggle');
 
-                toggleBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    sidebar.classList.toggle('hide');
-                });
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        sidebar.classList.toggle('hide');
+                    });
+                }
             });
         </script>
 
@@ -55,11 +60,13 @@
 
     </div>
 
+    <!-- Default JS -->
     <script src="{{ asset('assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js') }}"></script>
     <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('assets/vendors/apexcharts/apexcharts.js') }}"></script>
-    <script src="{{ asset('assets/js/pages/dashboard.js') }}"></script>
-    <script src="{{ asset('assets/js/main.js') }}"></script>
+
+    {{-- ⬇⬇⬇ INI YANG PENTING BIAR SCRIPT DI HALAMAN JALAN --}}
+    @yield('scripts')
 
 </body>
 

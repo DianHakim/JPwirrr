@@ -11,7 +11,6 @@ class ProductCategoryController extends Controller
     {
         $search = $request->input('search');
 
-        // ambil data kategori, kalau ada pencarian maka filter
         $categories = ProductCategory::when($search, function($query, $search) {
             return $query->where('name', 'like', "%{$search}%");
         })
@@ -29,7 +28,7 @@ class ProductCategoryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255'
+            'name' => 'required|string|max:255|unique:product_categories,name'
         ]);
 
         ProductCategory::create([
@@ -48,7 +47,7 @@ class ProductCategoryController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'name' => 'required|string|max:255'
+            'name' => 'required|string|max:255|unique:product_categories,name,' . $id
         ]);
 
         $category = ProductCategory::findOrFail($id);

@@ -10,9 +10,6 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
-    /**
-     * Tampilkan semua produk (dengan pencarian & kategori)
-     */
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -28,24 +25,23 @@ class ProductController extends Controller
             $query->where('pdc_id', $category);
         }
 
+        // === URUTKAN PRODUK TERBARU DI PALING ATAS ===
+        $query->orderBy('created_at', 'desc');
+        // atau pakai id:
+        // $query->orderBy('id', 'desc');
+
         $products = $query->paginate(10);
         $categories = ProductCategory::all();
 
         return view('products.index', compact('products', 'categories', 'search', 'category'));
     }
 
-    /**
-     * Form tambah produk baru
-     */
     public function create()
     {
         $categories = ProductCategory::all();
         return view('products.create', compact('categories'));
     }
 
-    /**
-     * Simpan produk baru
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -58,6 +54,21 @@ class ProductController extends Controller
             'prd_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
+        // ================================
+        // CEK DUPLIKAT NAMA + UKURAN
+        // ================================
+        $duplicate = Product::where('prd_name', $request->prd_name)
+            ->where('prd_size', $request->prd_size)
+            ->where('prd_price', $request->prd_price)
+            ->exists();
+
+        if ($duplicate) {
+            return back()
+                ->withErrors(['duplicate' => 'Produk dengan nama, ukuran, dan harga tersebut sudah ada!'])
+                ->withInput();
+        }
+
+        // Foto
         $photoPath = null;
         if ($request->hasFile('prd_photo')) {
             $photoPath = $request->file('prd_photo')->store('products', 'public');
@@ -76,18 +87,12 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Produk berhasil ditambahkan.');
     }
 
-    /**
-     * Form edit produk
-     */
     public function edit(Product $product)
     {
         $categories = ProductCategory::all();
         return view('products.edit', compact('product', 'categories'));
     }
 
-    /**
-     * Update produk
-     */
     public function update(Request $request, Product $product)
     {
         $request->validate([
@@ -99,6 +104,22 @@ class ProductController extends Controller
             'prd_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
+        // ================================
+        // CEK DUPLIKAT (Kecuali dirinya sendiri)
+        // ================================
+        $duplicate = Product::where('prd_name', $request->prd_name)
+            ->where('prd_size', $request->prd_size)
+            ->where('prd_price', $request->prd_price)
+            ->where('id', '!=', $product->id)
+            ->exists();
+
+        if ($duplicate) {
+            return back()
+                ->withErrors(['duplicate' => 'Produk dengan nama, ukuran, dan harga tersebut sudah ada!'])
+                ->withInput();
+        }
+
+        // Foto
         $photoPath = $product->prd_photo;
         if ($request->hasFile('prd_photo')) {
             if ($photoPath && Storage::disk('public')->exists($photoPath)) {
@@ -119,18 +140,12 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Produk berhasil diperbarui.');
     }
 
-    /**
-     * Halaman tambah stok produk
-     */
     public function addStockPage()
     {
         $products = Product::all();
         return view('products.addstock', compact('products'));
     }
 
-    /**
-     * Tambah stok produk
-     */
     public function addStock(Request $request)
     {
         $request->validate([
@@ -143,11 +158,9 @@ class ProductController extends Controller
         $before = $product->prd_stock;
         $after = $before + $request->amount;
 
-        // Update stok
         $product->prd_stock = $after;
         $product->save();
 
-        // Simpan log stok
         StockLog::create([
             'product_id' => $product->id,
             'before' => $before,
@@ -158,9 +171,6 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Stok berhasil ditambahkan!');
     }
 
-    /**
-     * Riwayat stok produk, diurutkan dari terbaru ke lama
-     */
     public function stockHistory()
     {
         $logs = StockLog::with('product')->orderBy('id', 'desc')->paginate(20);
@@ -168,9 +178,6 @@ class ProductController extends Controller
         return view('products.stock_history', compact('logs'));
     }
 
-    /**
-     * Hapus produk
-     */
     public function destroy(Product $product)
     {
         if ($product->prd_photo && Storage::disk('public')->exists($product->prd_photo)) {

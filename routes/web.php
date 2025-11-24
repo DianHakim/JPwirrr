@@ -16,9 +16,7 @@ Route::get('/', function () {
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.process');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware('auth')->name('dashboard');
+Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'dashboard'])->name('dashboard')->middleware('auth');
 
 Route::prefix('kategori')->name('productcategory.')->middleware('auth')->group(function () {
     Route::get('/', [ProductCategoryController::class, 'index'])->name('index');
