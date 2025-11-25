@@ -33,6 +33,12 @@ class ProductController extends Controller
         $products = $query->paginate(10);
         $categories = ProductCategory::all();
 
+        $lowStock = Product::where('prd_stock', '>', 0)
+            ->where('prd_stock', '<', 10)
+            ->get();
+
+        $emptyStock = Product::where('prd_stock', 0)->get();
+
         return view('products.index', compact('products', 'categories', 'search', 'category'));
     }
 
