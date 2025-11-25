@@ -10,9 +10,28 @@
             <form action="{{ route('transactions.store') }}" method="POST" id="trxForm" class="needs-validation" novalidate>
                 @csrf
 
-                <!-- HIDDEN DISCOUNT & CASH FIELDS -->
                 <input type="hidden" name="trs_discount" id="trs_discount" value="0">
                 <input type="hidden" name="cash" id="cashInput" value="0">
+
+                {{-- ================= GLOBAL SEARCH PRODUK (DI ATAS TABLE) ================= --}}
+                <div class="mb-3 position-relative">
+                    <input type="text" id="globalProductSearch" class="form-control"
+                        placeholder="Cari produk... (ketik nama lalu pilih dari daftar)" autocomplete="off">
+
+                    <ul class="list-group position-absolute w-100 d-none"
+                        id="globalProductList"
+                        style="z-index:10; max-height:200px; overflow-y:auto;">
+                        @foreach ($products as $p)
+                        <li class="list-group-item globalProductItem"
+                            data-id="{{ $p->id }}"
+                            data-name="{{ $p->prd_name }}"
+                            data-price="{{ $p->prd_price }}"
+                            data-stock="{{ $p->prd_stock }}">
+                            {{ $p->prd_name }} - Rp {{ number_format($p->prd_price, 0, ',', '.') }}
+                        </li>
+                        @endforeach
+                    </ul>
+                </div>
 
                 <table class="table table-bordered text-center">
                     <thead class="table-light">
@@ -26,7 +45,8 @@
                     </thead>
 
                     <tbody id="itemsBody">
-                        <tr>
+                        {{-- Satu baris kosong sebagai template awal (akan di-clone saat pilih produk) --}}
+                        <tr class="item-row">
                             <td>
                                 <select class="form-select productSelect d-none" name="items[0][product_id]" required>
                                     <option value="">-- Pilih Produk --</option>
@@ -41,12 +61,14 @@
                                 </select>
 
                                 <div class="position-relative">
-                                    <input type="text" class="form-control productSearch" placeholder="Cari produk…" autocomplete="off">
+                                    <!-- per-row search DISABLED (readonly) sesuai permintaan -->
+                                    <input type="text" class="form-control productSearch" placeholder="Produk akan tampil di sini…" autocomplete="off" readonly>
 
+                                    <!-- per-row list tetap ada tapi tidak digunakan (d-none) -->
                                     <ul class="list-group position-absolute w-100 productList d-none"
                                         style="z-index:10; max-height:180px; overflow-y:auto;">
                                         @foreach ($products as $p)
-                                        <li class="list-group-item productItem"
+                                        <li class="list-group-item productItem d-none"
                                             data-id="{{ $p->id }}"
                                             data-name="{{ $p->prd_name }}"
                                             data-price="{{ $p->prd_price }}"
@@ -80,7 +102,7 @@
                     </tbody>
                 </table>
 
-                <button type="button" id="addRow" class="btn btn-primary mb-3">Tambah Baris</button>
+                {{-- NOTE: tombol "Tambah Baris" dihapus sesuai permintaan (otomatis tambah saat pilih produk) --}}
 
                 <div class="text-end">
                     <h4>Total: <span id="totalText">Rp 0</span></h4>
@@ -90,19 +112,27 @@
                     <label>Metode Pembayaran</label>
                     <select class="form-select" name="payment_method" required>
                         <option value="cash">Cash</option>
-                        <option value="transfer">Transfer</option>
-                        <option value="qris">QRIS</option>
+                        <option value="qris">Qris</option>
                     </select>
                 </div>
-                <div class="text-end mt-3">
-                    <a href="{{ route('transactions.index') }}" class="btn btn-secondary me-2">
+
+                <div id="qrisImageBox" class="text-center mb-3 d-none">
+                    <img src="/img/dana.png" alt="QRIS" class="img-fluid rounded" style="max-width:310px;">
+                    <p class="mt-2 fw-bold text-secondary">Scan untuk membayar</p>
+                </div>
+
+                <!-- TOMBOL DIPINDAH KE PALING BAWAH DALAM CARD -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{{ route('transactions.index') }}" class="btn btn-secondary px-4">
                         Kembali
                     </a>
-                    <button type="button" class="btn btn-success" id="openPayModal">
+                    <button type="button" class="btn btn-success px-4" id="openPayModal">
                         Pembayaran
                     </button>
                 </div>
+
             </form>
+
         </div>
     </div>
 </div>
@@ -131,7 +161,7 @@
 <div class="modal fade" id="payModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 shadow">
-            
+
             <div class="modal-header">
                 <h5 class="modal-title">Pembayaran</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -151,30 +181,30 @@
 
                     <div class="d-flex gap-3">
                         <div class="form-check">
-                            <input class="form-check-input discountMode" type="radio" 
-                                   name="discount_mode" id="discount_none" value="none" checked>
+                            <input class="form-check-input discountMode" type="radio"
+                                name="discount_mode" id="discount_none" value="none" checked>
                             <label class="form-check-label" for="discount_none">Tidak</label>
                         </div>
 
                         <div class="form-check">
-                            <input class="form-check-input discountMode" type="radio" 
-                                   name="discount_mode" id="discount_percent_radio" value="percent">
+                            <input class="form-check-input discountMode" type="radio"
+                                name="discount_mode" id="discount_percent_radio" value="percent">
                             <label class="form-check-label" for="discount_percent_radio">Persen (%)</label>
                         </div>
 
                         <div class="form-check">
-                            <input class="form-check-input discountMode" type="radio" 
-                                   name="discount_mode" id="discount_nominal_radio" value="nominal">
+                            <input class="form-check-input discountMode" type="radio"
+                                name="discount_mode" id="discount_nominal_radio" value="nominal">
                             <label class="form-check-label" for="discount_nominal_radio">Nominal (Rp)</label>
                         </div>
                     </div>
 
                     <div class="mt-2 d-flex gap-2">
-                        <input type="number" class="form-control" id="discountPercent" 
-                               placeholder="0 %" min="0" max="100" disabled>
+                        <input type="number" class="form-control" id="discountPercent"
+                            placeholder="0 %" min="0" max="100" disabled>
 
-                        <input type="number" class="form-control" id="discountNominal" 
-                               placeholder="Rp 0" min="0" disabled>
+                        <input type="number" class="form-control" id="discountNominal"
+                            placeholder="Rp 0" min="0" disabled>
                     </div>
                 </div>
 
@@ -194,8 +224,8 @@
                 <div class="mb-3">
                     <label class="form-label">Uang Diterima</label>
 
-                    <input type="number" class="form-control" id="payInput" 
-                           placeholder="Masukkan nominal" min="0" required>
+                    <input type="number" class="form-control" id="payInput"
+                        placeholder="Masukkan nominal" min="0" required>
 
                     <!-- ERROR: BAYAR < TOTAL -->
                     <div id="payError" class="text-danger mt-2 d-none">
@@ -203,7 +233,7 @@
                     </div>
 
                     <!-- ERROR: MAX LIMIT 1 MILIAR -->
-                    <div id="cashLimitText" class="text-danger mt-2 d-none">
+                    <div id="cashLimitText" class="text-success mt-2 d-none">
                         Nominal pembayaran tidak boleh lebih dari 1.000.000.000 (1 miliar). Mohon kurangi.
                     </div>
                 </div>
@@ -212,8 +242,8 @@
                 <div class="mb-2">
                     <label class="form-label fw-semibold">Kembalian</label>
 
-                    <div class="d-flex justify-content-between align-items-center p-2 rounded" 
-                         style="background:#f8f9fa;">
+                    <div class="d-flex justify-content-between align-items-center p-2 rounded"
+                        style="background:#f8f9fa;">
                         <div id="changeText" class="fw-bold">Rp 0</div>
                         <div id="changeStatus" class="badge bg-secondary">Belum bayar</div>
                     </div>
@@ -232,354 +262,394 @@
 
 <!-- ================== SCRIPT ================== -->
 <script>
-/* ============================================================
-   ====================== FORMAT & UTILS ========================
-===============================================================*/
-
-function formatRupiah(num) {
-    if (!num || isNaN(num)) return 'Rp 0';
-    return 'Rp ' + new Intl.NumberFormat('id-ID').format(num);
-}
-
-function toNumber(v) {
-    const n = parseInt(v, 10);
-    return isNaN(n) ? 0 : n;
-}
-
-let row = 1;
-
-/* ============================================================
-   ====================== ADD NEW ROW ==========================
-===============================================================*/
-document.getElementById('addRow').addEventListener('click', () => {
-    const body = document.getElementById('itemsBody');
-    const firstRow = body.children[0];
-    const newRow = firstRow.cloneNode(true);
-
-    newRow.querySelector('.productSelect').value = "";
-    newRow.querySelector('.productSearch').value = "";
-    newRow.querySelector('.productList').classList.add("d-none");
-
-    newRow.querySelector('.qtyInput').value = 1;
-    newRow.querySelector('.priceInput').value = "";
-    newRow.querySelector('.subtotalInput').value = "";
-
-    newRow.querySelectorAll('select, input').forEach(el => {
-        const name = el.getAttribute('name');
-        if (name) el.setAttribute('name', name.replace(/\[\d+\]/, `[${row}]`));
-    });
-
-    body.appendChild(newRow);
-    row++;
-    calcAll();
-});
-
-/* ============================================================
-   ====================== HITUNG TOTAL =========================
-===============================================================*/
-function calcAll() {
-    let total = 0;
-
-    document.querySelectorAll('#itemsBody tr').forEach((tr) => {
-        const select = tr.querySelector('.productSelect');
-        let price = 0;
-
-        if (select && select.value !== "") {
-            price = toNumber(select.selectedOptions[0].dataset.price);
-        }
-
-        let qty = toNumber(tr.querySelector('.qtyInput').value);
-        if (qty < 0 || isNaN(qty)) qty = 0;
-
-        tr.querySelector('.priceInput').value = price;
-        tr.querySelector('.subtotalInput').value = price * qty;
-
-        total += price * qty;
-    });
-
-    document.getElementById('totalText').textContent = formatRupiah(total);
-    document.getElementById('modalSubtotal').dataset.value = total;
-    document.getElementById('modalSubtotal').innerText = formatRupiah(total);
-
-    recalcDiscountPreview();
-}
-
-/* ============================================================
-   ====================== QTY INPUT ============================
-===============================================================*/
-document.addEventListener('input', function(e) {
-    if (!e.target.classList.contains('qtyInput')) return;
-
-    let raw = e.target.value.replace(/[^0-9]/g, "");
-    e.target.value = raw;
-
-    const tr = e.target.closest("tr");
-    const select = tr.querySelector(".productSelect");
-
-    if (select && select.value !== "") {
-        const stock = parseInt(select.selectedOptions[0].dataset.stock);
-        let qty = raw === "" ? 0 : parseInt(raw);
-
-        if (qty > stock) {
-            e.target.value = stock;
-
-            document.getElementById("qtyStockMessage").innerText =
-                `Stok produk hanya tersisa ${stock}.`;
-
-            const modal = new bootstrap.Modal(document.getElementById("qtyStockModal"));
-            modal.show();
-        }
+    /* ============================================================
+       FORMAT & UTIL
+    ============================================================*/
+    function formatRupiah(num) {
+        if (!num || isNaN(num)) return 'Rp 0';
+        return 'Rp ' + new Intl.NumberFormat('id-ID').format(num);
     }
 
-    calcAll();
-});
+    function toNumber(v) {
+        const n = parseInt(v, 10);
+        return isNaN(n) ? 0 : n;
+    }
 
-/* ============================================================
-   ==================== SEARCH PRODUK ==========================
-===============================================================*/
-document.addEventListener("input", function(e) {
-    if (!e.target.classList.contains("productSearch")) return;
+    let globalRowIndex = 1;
 
-    const tr = e.target.closest("tr");
-    const list = tr.querySelector(".productList");
-    const keyword = e.target.value.toLowerCase();
+    /* ============================================================
+       TAMBAH BARIS DARI SELECTION GLOBAL
+       - hanya global search yg aktif
+       - per-row search readonly & hidden
+    ============================================================*/
+    function addNewRowFromSelection(data) {
+        const id = data.id;
+        const name = data.name;
+        const price = parseInt(data.price);
+        const stock = parseInt(data.stock);
 
-    list.classList.remove("d-none");
-
-    list.querySelectorAll(".productItem").forEach(item => {
-        const name = item.dataset.name.toLowerCase();
-        const stock = parseInt(item.dataset.stock);
-
-        item.style.display = (stock > 0 && name.includes(keyword)) ? "block" : "none";
-    });
-});
-
-/* ============================================================
-   ===================== PRODUK DIKLIK =========================
-===============================================================*/
-document.addEventListener("click", function(e) {
-    if (!e.target.classList.contains("productItem")) return;
-
-    const item = e.target;
-    const tr = item.closest("tr");
-
-    const id = item.dataset.id;
-    const name = item.dataset.name;
-    const price = item.dataset.price;
-    const stock = parseInt(item.dataset.stock);
-
-    let duplicate = false;
-    document.querySelectorAll('.productSelect').forEach(s => {
-        if (s !== tr.querySelector('.productSelect') && s.value == id) {
-            duplicate = true;
-        }
-    });
-
-    if (duplicate) return alert("Produk sudah dipilih di baris lain!");
-    if (stock === 0) return alert("Stok produk habis!");
-
-    tr.querySelector('.productSearch').value = name;
-
-    const select = tr.querySelector('.productSelect');
-    select.value = id;
-
-    const qtyInput = tr.querySelector('.qtyInput');
-    qtyInput.value = "1";
-    qtyInput.focus();
-    qtyInput.select();
-
-    tr.querySelector('.priceInput').value = price;
-    tr.querySelector('.subtotalInput').value = price;
-
-    tr.querySelector('.productList').classList.add("d-none");
-
-    calcAll();
-});
-
-/* ============================================================
-   =================== CLICK DI LUAR LIST ======================
-===============================================================*/
-document.addEventListener("click", function(e) {
-    if (!e.target.classList.contains("productSearch") &&
-        !e.target.classList.contains("productItem")) {
-        document.querySelectorAll('.productList').forEach(list => {
-            list.classList.add("d-none");
+        // duplicate check
+        let duplicate = false;
+        document.querySelectorAll('.productSelect').forEach(s => {
+            if (s.value == id) duplicate = true;
         });
-    }
-});
+        if (duplicate) {
+            alert("Produk sudah dipilih di tabel!");
+            return;
+        }
+        if (stock === 0) {
+            alert("Stok produk habis!");
+            return;
+        }
 
-/* ============================================================
-   ===================== DELETE ROW ============================
-===============================================================*/
-document.addEventListener('click', function(e) {
-    if (!e.target.classList.contains('removeRow')) return;
+        const body = document.getElementById('itemsBody');
+        const firstRow = body.querySelector('.item-row');
+        const newRow = firstRow.cloneNode(true);
 
-    const rows = document.querySelectorAll('#itemsBody tr');
-    if (rows.length > 1) {
-        e.target.closest('tr').remove();
+        // update name index
+        newRow.querySelectorAll('select, input').forEach(el => {
+            const nameAttr = el.getAttribute('name');
+            if (nameAttr) {
+                el.setAttribute('name', nameAttr.replace(/\[0\]/, `[${globalRowIndex}]`));
+            }
+        });
+
+        // set values
+        const select = newRow.querySelector('.productSelect');
+        select.value = id;
+
+        const prodSearch = newRow.querySelector('.productSearch');
+        prodSearch.value = name; // readonly field shows product name
+
+        const qtyInput = newRow.querySelector('.qtyInput');
+        qtyInput.value = 1;
+
+        newRow.querySelector('.priceInput').value = price;
+        newRow.querySelector('.subtotalInput').value = price;
+
+        // ensure per-row list hidden
+        const list = newRow.querySelector('.productList');
+        if (list) list.classList.add('d-none');
+
+        body.appendChild(newRow);
+
+        globalRowIndex++;
         calcAll();
     }
-});
 
-/* ============================================================
-   ===================== MODAL PEMBAYARAN =======================
-===============================================================*/
-const payInput = document.getElementById('payInput');
-const payError = document.getElementById('payError');
-const changeText = document.getElementById('changeText');
-const changeStatus = document.getElementById('changeStatus');
-const modalSubtotalEl = document.getElementById('modalSubtotal');
-const discountNoneRadio = document.getElementById('discount_none');
-const discountPercentRadio = document.getElementById('discount_percent_radio');
-const discountNominalRadio = document.getElementById('discount_nominal_radio');
-const discountPercentInput = document.getElementById('discountPercent');
-const discountNominalInput = document.getElementById('discountNominal');
-const finalTotalText = document.getElementById('finalTotalText');
-const appliedDiscountText = document.getElementById('appliedDiscountText');
+    /* ============================================================
+       GLOBAL SEARCH (ATAS TABLE)
+    ============================================================*/
+    const gSearch = document.getElementById('globalProductSearch');
+    const gList = document.getElementById('globalProductList');
 
-/* -------- Open Modal --------*/
-document.getElementById('openPayModal').addEventListener('click', () => {
-    const form = document.getElementById('trxForm');
-    if (!form.checkValidity()) {
-        form.classList.add('was-validated');
-        return;
-    }
-
-    calcAll();
-
-    const totalNum = toNumber(modalSubtotalEl.dataset.value);
-    modalSubtotalEl.innerText = formatRupiah(totalNum);
-
-    discountNoneRadio.checked = true;
-    discountPercentInput.value = '';
-    discountNominalInput.value = '';
-    discountPercentInput.disabled = true;
-    discountNominalInput.disabled = true;
-
-    payInput.value = '';
-    payError.classList.add('d-none');
-    changeText.innerText = formatRupiah(0);
-    changeStatus.innerText = 'Belum bayar';
-    changeStatus.className = 'badge bg-secondary';
-
-    recalcDiscountPreview();
-
-    new bootstrap.Modal(document.getElementById('payModal')).show();
-});
-
-/* -------- Diskon Mode --------*/
-document.querySelectorAll('.discountMode').forEach(r => {
-    r.addEventListener('change', () => {
-        if (discountPercentRadio.checked) {
-            discountPercentInput.disabled = false;
-            discountNominalInput.disabled = true;
-            discountNominalInput.value = '';
-        } else if (discountNominalRadio.checked) {
-            discountPercentInput.disabled = true;
-            discountNominalInput.disabled = false;
-            discountPercentInput.value = '';
-        } else {
-            discountPercentInput.disabled = true;
-            discountNominalInput.disabled = true;
-            discountPercentInput.value = '';
-            discountNominalInput.value = '';
+    gSearch.addEventListener('input', function() {
+        const keyword = this.value.trim().toLowerCase();
+        if (!keyword) {
+            gList.classList.add('d-none');
+            return;
         }
-        recalcDiscountPreview();
+
+        // show list and filter
+        gList.classList.remove('d-none');
+        gList.querySelectorAll('.globalProductItem').forEach(item => {
+            const name = item.dataset.name.toLowerCase();
+            const stock = parseInt(item.dataset.stock);
+            item.style.display = (stock > 0 && name.includes(keyword)) ? 'block' : 'none';
+        });
     });
-});
 
-/* -------- Discount Preview --------*/
-function recalcDiscountPreview() {
-    const total = toNumber(modalSubtotalEl.dataset.value);
-    let discountValue = 0;
+    // click global item -> add row
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('globalProductItem')) {
+            addNewRowFromSelection(e.target.dataset);
+            gSearch.value = '';
+            gList.classList.add('d-none');
+            return;
+        }
 
-    if (discountPercentRadio.checked) {
-        const pct = toNumber(discountPercentInput.value);
-        discountValue = Math.floor(total * pct / 100);
-        appliedDiscountText.innerText = `Diskon: ${pct}% → ${formatRupiah(discountValue)}`;
-    } else if (discountNominalRadio.checked) {
-        discountValue = toNumber(discountNominalInput.value);
-        appliedDiscountText.innerText = `Diskon: ${formatRupiah(discountValue)}`;
-    } else {
-        appliedDiscountText.innerText = 'Diskon: Rp 0';
+        // click outside -> hide lists
+        if (!e.target.classList.contains('globalProductItem') && e.target.id !== 'globalProductSearch') {
+            document.getElementById('globalProductList').classList.add('d-none');
+        }
+    });
+
+    /* ============================================================
+       HAPUS ROW
+    ============================================================*/
+    document.addEventListener('click', function(e) {
+        if (!e.target.classList.contains('removeRow')) return;
+
+        const rows = document.querySelectorAll('#itemsBody tr');
+        if (rows.length > 1) {
+            e.target.closest('tr').remove();
+            calcAll();
+        } else {
+            // reset template row (jangan hapus)
+            const tr = rows[0];
+            tr.querySelector('.productSelect').value = "";
+            tr.querySelector('.productSearch').value = "";
+            tr.querySelector('.priceInput').value = "";
+            tr.querySelector('.qtyInput').value = 1;
+            tr.querySelector('.subtotalInput').value = "";
+            calcAll();
+        }
+    });
+
+    /* ============================================================
+       QTY VALIDATION
+    ============================================================*/
+    document.addEventListener('input', function(e) {
+        if (!e.target.classList.contains('qtyInput')) return;
+
+        let raw = e.target.value.replace(/[^0-9]/g, "");
+        e.target.value = raw;
+
+        const tr = e.target.closest('tr');
+        const select = tr.querySelector('.productSelect');
+
+        if (select && select.value !== "") {
+            const stock = parseInt(select.selectedOptions[0].dataset.stock);
+            let qty = raw === "" ? 0 : parseInt(raw);
+
+            if (qty > stock) {
+                e.target.value = stock;
+                document.getElementById("qtyStockMessage").innerText =
+                    `Stok produk hanya tersisa ${stock}.`;
+                new bootstrap.Modal(document.getElementById("qtyStockModal")).show();
+            }
+        }
+
+        calcAll();
+    });
+
+    /* ============================================================
+       HITUNG TOTAL, UPDATE SUBTOTAL, PREVIEW DISKON, QRIS
+    ============================================================*/
+    function calcAll() {
+        let total = 0;
+
+        document.querySelectorAll('#itemsBody tr').forEach((tr) => {
+            const select = tr.querySelector('.productSelect');
+            let price = 0;
+
+            if (select && select.value !== "") {
+                const opt = select.selectedOptions ? select.selectedOptions[0] : null;
+                if (opt && opt.dataset && opt.dataset.price) {
+                    price = toNumber(opt.dataset.price);
+                } else {
+                    price = toNumber(tr.querySelector('.priceInput').value);
+                }
+            } else {
+                price = toNumber(tr.querySelector('.priceInput').value);
+            }
+
+            let qty = toNumber(tr.querySelector('.qtyInput').value);
+            if (qty < 0 || isNaN(qty)) qty = 0;
+
+            tr.querySelector('.priceInput').value = price;
+            tr.querySelector('.subtotalInput').value = price * qty;
+
+            total += price * qty;
+        });
+
+        document.getElementById('totalText').textContent = formatRupiah(total);
+        document.getElementById('modalSubtotal').dataset.value = total;
+        document.getElementById('modalSubtotal').innerText = formatRupiah(total);
+
+        recalcDiscountPreview();
+        qrisAutoFill();
     }
 
-    const finalTotal = Math.max(total - discountValue, 0);
-    finalTotalText.innerText = formatRupiah(finalTotal);
+    /* ============================================================
+       MODAL PEMBAYARAN LOGIC (diskon/pay/kembalian/limit)
+    ============================================================*/
+    const payInput = document.getElementById('payInput');
+    const payError = document.getElementById('payError');
+    const changeText = document.getElementById('changeText');
+    const changeStatus = document.getElementById('changeStatus');
+    const modalSubtotalEl = document.getElementById('modalSubtotal');
 
-    updateChangePreview();
-}
+    const discountNoneRadio = document.getElementById('discount_none');
+    const discountPercentRadio = document.getElementById('discount_percent_radio');
+    const discountNominalRadio = document.getElementById('discount_nominal_radio');
 
-discountPercentInput.addEventListener('input', recalcDiscountPreview);
-discountNominalInput.addEventListener('input', recalcDiscountPreview);
+    const discountPercentInput = document.getElementById('discountPercent');
+    const discountNominalInput = document.getElementById('discountNominal');
 
-/* -------- Preview Kembalian --------*/
-function updateChangePreview() {
-    const finalTotal = toNumber(finalTotalText.innerText.replace(/\D/g, ''));
-    const bayar = toNumber(payInput.value);
-    const kembali = bayar - finalTotal;
+    const finalTotalText = document.getElementById('finalTotalText');
+    const appliedDiscountText = document.getElementById('appliedDiscountText');
 
-    changeText.innerText = formatRupiah(Math.max(kembali, 0));
+    document.getElementById('openPayModal').addEventListener('click', () => {
+        const form = document.getElementById('trxForm');
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return;
+        }
 
-    if (bayar >= finalTotal && bayar > 0) {
-        changeStatus.innerText = 'Cukup';
-        changeStatus.className = 'badge bg-success';
+        calcAll();
+
+        const totalNum = toNumber(modalSubtotalEl.dataset.value);
+        modalSubtotalEl.innerText = formatRupiah(totalNum);
+
+        discountNoneRadio.checked = true;
+        discountPercentInput.value = '';
+        discountNominalInput.value = '';
+        discountPercentInput.disabled = true;
+        discountNominalInput.disabled = true;
+
+        payInput.value = '';
         payError.classList.add('d-none');
-    } else if (bayar > 0 && bayar < finalTotal) {
-        changeStatus.innerText = 'Kurang';
-        changeStatus.className = 'badge bg-danger';
-        payError.classList.remove('d-none');
-    } else {
+        changeText.innerText = formatRupiah(0);
         changeStatus.innerText = 'Belum bayar';
         changeStatus.className = 'badge bg-secondary';
+
+        recalcDiscountPreview();
+
+        new bootstrap.Modal(document.getElementById('payModal')).show();
+    });
+
+    document.querySelectorAll('.discountMode').forEach(r => {
+        r.addEventListener('change', () => {
+            if (discountPercentRadio.checked) {
+                discountPercentInput.disabled = false;
+                discountNominalInput.disabled = true;
+                discountNominalInput.value = '';
+            } else if (discountNominalRadio.checked) {
+                discountPercentInput.disabled = true;
+                discountNominalInput.disabled = false;
+                discountPercentInput.value = '';
+            } else {
+                discountPercentInput.disabled = true;
+                discountNominalInput.disabled = true;
+                discountPercentInput.value = '';
+                discountNominalInput.value = '';
+            }
+            recalcDiscountPreview();
+        });
+    });
+
+    function recalcDiscountPreview() {
+        const total = toNumber(modalSubtotalEl.dataset.value);
+        let discountValue = 0;
+
+        if (discountPercentRadio.checked) {
+            const pct = toNumber(discountPercentInput.value);
+            discountValue = Math.floor(total * pct / 100);
+            appliedDiscountText.innerText = `Diskon: ${pct}% → ${formatRupiah(discountValue)}`;
+        } else if (discountNominalRadio.checked) {
+            discountValue = toNumber(discountNominalInput.value);
+            appliedDiscountText.innerText = `Diskon: ${formatRupiah(discountValue)}`;
+        } else {
+            appliedDiscountText.innerText = 'Diskon: Rp 0';
+        }
+
+        const finalTotal = Math.max(total - discountValue, 0);
+        finalTotalText.innerText = formatRupiah(finalTotal);
+
+        updateChangePreview();
+        qrisAutoFill();
     }
-}
 
-/* -------- Limit Pembayaran --------*/
-payInput.addEventListener("input", function() {
-    let raw = payInput.value.replace(/[^0-9]/g, "");
-    payInput.value = raw;
+    discountPercentInput.addEventListener('input', recalcDiscountPreview);
+    discountNominalInput.addEventListener('input', recalcDiscountPreview);
 
-    let nominal = raw === "" ? 0 : parseInt(raw);
+    function updateChangePreview() {
+        const finalTotal = toNumber(finalTotalText.innerText.replace(/\D/g, ''));
+        const bayar = toNumber(payInput.value);
+        const kembali = bayar - finalTotal;
 
-    if (nominal > 1000000000) {
-        payInput.value = 1000000000;
-        alert("Nominal pembayaran maksimal 1.000.000.000 (1 miliar)");
+        changeText.innerText = formatRupiah(Math.max(kembali, 0));
+
+        if (bayar >= finalTotal && bayar > 0) {
+            changeStatus.innerText = 'Cukup';
+            changeStatus.className = 'badge bg-success';
+            payError.classList.add('d-none');
+        } else if (bayar > 0 && bayar < finalTotal) {
+            changeStatus.innerText = 'Kurang';
+            changeStatus.className = 'badge bg-danger';
+            payError.classList.remove('d-none');
+        } else {
+            changeStatus.innerText = 'Belum bayar';
+            changeStatus.className = 'badge bg-secondary';
+        }
     }
 
-    updateChangePreview();
-});
+    payInput.addEventListener("input", function() {
+        let raw = payInput.value.replace(/[^0-9]/g, "");
+        payInput.value = raw;
 
-/* -------- Submit --------*/
-document.getElementById('confirmPayBtn').addEventListener('click', () => {
-    const finalTotal = toNumber(finalTotalText.innerText.replace(/\D/g, ''));
-    const bayar = toNumber(payInput.value);
+        let nominal = raw === "" ? 0 : parseInt(raw);
 
-    if (bayar < finalTotal) {
-        payError.classList.remove('d-none');
-        return;
+        if (nominal > 1000000000) {
+            payInput.value = 1000000000;
+            document.getElementById("cashLimitText").classList.remove("d-none");
+        } else {
+            document.getElementById("cashLimitText").classList.add("d-none");
+        }
+
+        updateChangePreview();
+    });
+
+    document.getElementById('confirmPayBtn').addEventListener('click', () => {
+        const finalTotal = toNumber(finalTotalText.innerText.replace(/\D/g, ''));
+        const bayar = toNumber(payInput.value);
+
+        if (bayar < finalTotal) {
+            payError.classList.remove('d-none');
+            return;
+        }
+
+        document.getElementById('cashInput').value = bayar;
+
+        let dNominal = 0;
+        const subtotal = toNumber(modalSubtotalEl.dataset.value);
+
+        if (discountPercentRadio.checked) {
+            dNominal = Math.floor(subtotal * toNumber(discountPercentInput.value) / 100);
+        }
+
+        if (discountNominalRadio.checked) {
+            dNominal = toNumber(discountNominalInput.value);
+        }
+
+        document.getElementById('trs_discount').value = dNominal;
+        document.getElementById('trxForm').submit();
+    });
+
+    /* ============================================================
+       QRIS AUTO FILL & TOGGLE IMAGE
+    ============================================================*/
+    function qrisAutoFill() {
+        const method = document.querySelector("select[name='payment_method']").value;
+        if (method !== "qris") return;
+
+        const finalTotal = toNumber(finalTotalText.innerText.replace(/\D/g, ""));
+        payInput.value = finalTotal;
+        updateChangePreview();
     }
 
-    document.getElementById('cashInput').value = bayar;
+    document.querySelector("select[name='payment_method']")
+        .addEventListener("change", () => {
+            qrisAutoFill();
+            const qrisBox = document.getElementById("qrisImageBox");
+            if (document.querySelector("select[name='payment_method']").value === 'qris') {
+                qrisBox.classList.remove('d-none');
+            } else {
+                qrisBox.classList.add('d-none');
+            }
+        });
 
-    let dNominal = 0;
-    const subtotal = toNumber(modalSubtotalEl.dataset.value);
+    (function(){
+        const qrisBox = document.getElementById("qrisImageBox");
+        if (document.querySelector("select[name='payment_method']").value === 'qris') {
+            qrisBox.classList.remove('d-none');
+        } else {
+            qrisBox.classList.add('d-none');
+        }
+    })();
 
-    if (discountPercentRadio.checked) {
-        dNominal = Math.floor(subtotal * toNumber(discountPercentInput.value) / 100);
-    }
-
-    if (discountNominalRadio.checked) {
-        dNominal = toNumber(discountNominalInput.value);
-    }
-
-    document.getElementById('trs_discount').value = dNominal;
-    document.getElementById('trxForm').submit();
-});
-
-/* ============================================================
-   ====================== INIT ================================
-===============================================================*/
-calcAll();
+    // initial calc
+    calcAll();
 </script>
 @endsection

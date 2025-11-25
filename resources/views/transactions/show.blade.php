@@ -5,6 +5,18 @@
 
     <h1 class="fw-bold mb-3">Detail Transaksi #{{ $transaction->trs_code }}</h1>
 
+    {{-- TOMBOL PRINT & KEMBALI DI ATAS KARTU, POSISI KANAN --}}
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{{ route('transactions.print-pdf', $transaction->id) }}" 
+           class="btn btn-dark px-4 me-2" target="_blank">
+            Print
+        </a>
+        <a href="{{ route('transactions.index') }}" 
+           class="btn btn-secondary px-4">
+            Kembali
+        </a>
+    </div>
+
     <div class="card shadow border-0 rounded-4">
         <div class="card-body p-4">
 
@@ -49,7 +61,6 @@
             @endphp
 
             <div class="mt-3 text-end">
-
                 <h5 class="mb-1">
                     Subtotal: <span class="fw-bold">{{ rupiah($subtotal) }}</span>
                 </h5>
@@ -70,11 +81,6 @@
                     Total Bayar: 
                     <span class="text-success fw-bold">{{ rupiah($transaction->trs_total) }}</span>
                 </h4>
-            </div>
-
-            <div class="d-flex justify-content-end mt-4">
-                <a href="{{ route('transactions.print-pdf', $transaction->id) }}" class="btn btn-dark px-4 me-2" target="_blank">Print</a>
-                <a href="{{ route('transactions.index') }}" class="btn btn-secondary px-4">Kembali</a>
             </div>
 
         </div>

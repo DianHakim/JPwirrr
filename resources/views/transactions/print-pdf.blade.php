@@ -60,9 +60,14 @@
             <td class="right">Rp {{ number_format($transaction->trs_total,0,',','.') }}</td>
         </tr>
 
+        <!-- PEMBAYARAN: CASH / QRIS -->
         <tr>
-            <td>Tunai :</td>
-            <td class="right">Rp {{ number_format($transaction->cash ?? 0,0,',','.') }}</td>
+            <td>
+                {{ $transaction->payment_method === 'qris' ? 'QRIS :' : 'Tunai :' }}
+            </td>
+            <td class="right">
+                Rp {{ number_format($transaction->cash ?? 0,0,',','.') }}
+            </td>
         </tr>
 
         <tr>

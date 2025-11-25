@@ -26,7 +26,7 @@
     <div class="alert alert-success d-none">{{ session('success') }}</div>
     @endif
 
-    {{-- TABEL PRODUK MODERN --}}
+    {{-- TABEL PRODUK MODERN --}}   
     <div class="table-responsive bg-white rounded shadow-sm p-3">
         <table class="table align-middle table-hover text-center">
             <thead class="table-light">

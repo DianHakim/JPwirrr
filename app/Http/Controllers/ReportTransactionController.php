@@ -12,41 +12,59 @@ class ReportTransactionController extends Controller
     // ===================== INDEX =====================
     public function index(Request $request)
     {
-        // default bulan sekarang (YYYY-MM)
-        $month = $request->month ?? date('Y-m');
+        $month = $request->month;   // angka bulan (1–12)
+        $year  = $request->year;    // angka tahun (2022, 2023, dst)
 
-        // extract tahun & bulan
-        [$tahun, $bulan] = explode('-', $month);
+        $query = ReportTransaction::with(['transaction', 'product']);
 
-        $reports = ReportTransaction::with(['transaction', 'product'])
-            ->whereYear('dtr_period', $tahun)
-            ->whereMonth('dtr_period', $bulan)
-            ->orderBy('dtr_period', 'desc')
-            ->get();
+        // === FILTER TAHUN ===
+        if ($year) {
+            $query->whereYear('dtr_period', $year);
+        }
 
+        // === FILTER BULAN ===
+        if ($month) {
+            $query->whereMonth('dtr_period', $month);
+        }
+
+        $reports = $query->orderBy('dtr_period', 'desc')->get();
         $totalIncome = $reports->sum('dtr_subtotal');
 
-        return view('reports.index', compact('reports', 'month', 'totalIncome'));
+        return view('reports.index', compact(
+            'reports',
+            'month',
+            'year',
+            'totalIncome'
+        ));
     }
 
     // ===================== EXPORT PDF =====================
     public function exportPDF(Request $request)
     {
-        $month = $request->month ?? date('Y-m');
+        $month = $request->month;
+        $year  = $request->year;
 
-        [$tahun, $bulan] = explode('-', $month);
+        $query = ReportTransaction::with(['transaction', 'product']);
 
-        $reports = ReportTransaction::with(['transaction', 'product'])
-            ->whereYear('dtr_period', $tahun)
-            ->whereMonth('dtr_period', $bulan)
-            ->orderBy('dtr_period', 'desc')
-            ->get();
+        if ($year) {
+            $query->whereYear('dtr_period', $year);
+        }
 
+        if ($month) {
+            $query->whereMonth('dtr_period', $month);
+        }
+
+        $reports = $query->orderBy('dtr_period', 'desc')->get();
         $totalIncome = $reports->sum('dtr_subtotal');
 
-        $pdf = Pdf::loadView('reports.pdf', compact('reports', 'month', 'totalIncome'));
+        $pdf = Pdf::loadView('reports.pdf', compact(
+            'reports',
+            'month',
+            'year',
+            'totalIncome'
+        ));
 
-        return $pdf->download('Laporan-'.$month.'.pdf');
+        return $pdf->download('Laporan.pdf');
     }
 
     // ===================== SIMPAN SAAT TRANSAKSI =====================
@@ -58,12 +76,12 @@ class ReportTransactionController extends Controller
                 'product_id'     => $detail->product_id,
                 'product_name'   => $detail->product_name,
                 'dtr_subtotal'   => $detail->subtotal,
-                'dtr_period'     => now()->toDateString(),
+                'dtr_period'     => now()->toDateString(), // YYYY-MM-DD
             ]);
         }
     }
 
-    // ===================== DETAIL LAPORAN PER TRANSAKSI =====================
+    // ===================== DETAIL LAPORAN =====================
     public function show($id)
     {
         $data = ReportTransaction::where('transaction_id', $id)
