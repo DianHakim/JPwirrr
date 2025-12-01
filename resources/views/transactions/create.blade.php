@@ -254,7 +254,7 @@
         tr.innerHTML = `
         <td>
             <select class="form-select productSelect d-none" name="items[${globalRowIndex}][product_id]" required>
-                <option value="${id}" selected>${name}</option>
+            <option value="${id}" data-stock="${stock}" data-price="${price}" selected> ${name}</option>
             </select>
 
             <input type="text" class="form-control productSearch" value="${name}" readonly>
@@ -328,25 +328,14 @@
     document.addEventListener('click', function(e) {
         if (!e.target.classList.contains('removeRow')) return;
 
-        const rows = document.querySelectorAll('#itemsBody tr');
-        if (rows.length > 1) {
-            e.target.closest('tr').remove();
-            calcAll();
-        } else {
-            // reset template row (jangan hapus)
-            const tr = rows[0];
-            tr.querySelector('.productSelect').value = "";
-            tr.querySelector('.productSearch').value = "";
-            tr.querySelector('.priceInput').value = "";
-            tr.querySelector('.qtyInput').value = 1;
-            tr.querySelector('.subtotalInput').value = "";
-            calcAll();
-        }
+        const tr = e.target.closest('tr');
+        tr.remove();
+        calcAll();
     });
 
     /* ============================================================
-       QTY VALIDATION
-    ============================================================*/
+   QTY VALIDATION
+============================================================*/
     document.addEventListener('input', function(e) {
         if (!e.target.classList.contains('qtyInput')) return;
 

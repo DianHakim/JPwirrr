@@ -8,36 +8,36 @@
         MODAL DUPLIKAT PRODUK
     ============================ --}}
     @if ($errors->has('duplicate'))
-        <div class="modal fade show" id="duplicateModal" tabindex="-1" 
-             style="display:block; background:rgba(0,0,0,0.5);">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content rounded-4 shadow">
+    <div class="modal fade show" id="duplicateModal" tabindex="-1"
+        style="display:block; background:rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 shadow">
 
-                    <div class="modal-header bg-danger text-white rounded-top-4">
-                        <h5 class="modal-title fw-bold">Produk Duplikat</h5>
-                    </div>
-
-                    <div class="modal-body">
-                        <p class="mb-0">{{ $errors->first('duplicate') }}</p>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button class="btn btn-danger"
-                            onclick="document.getElementById('duplicateModal').style.display='none'">
-                            Tutup
-                        </button>
-                    </div>
-
+                <div class="modal-header bg-danger text-white rounded-top-4">
+                    <h5 class="modal-title fw-bold">Produk Duplikat</h5>
                 </div>
+
+                <div class="modal-body">
+                    <p class="mb-0">{{ $errors->first('duplicate') }}</p>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-danger"
+                        onclick="document.getElementById('duplicateModal').style.display='none'">
+                        Tutup
+                    </button>
+                </div>
+
             </div>
         </div>
+    </div>
     @endif
 
     {{-- ===========================
         FORM TAMBAH PRODUK
     ============================ --}}
     <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data"
-          class="bg-white p-4 rounded shadow-sm">
+        class="bg-white p-4 rounded shadow-sm">
 
         @csrf
 
@@ -45,21 +45,25 @@
         <div class="mb-3">
             <label class="form-label">Nama Produk</label>
             <input type="text" name="prd_name" class="form-control"
-                   required value="{{ old('prd_name') }}">
+                required value="{{ old('prd_name') }}">
         </div>
 
         {{-- STOK & HARGA --}}
         <div class="row">
             <div class="col-md-6 mb-3">
                 <label class="form-label">Stok</label>
-                <input type="number" name="prd_stock" class="form-control"
-                       required value="{{ old('prd_stock') }}">
+                <input type="text" name="prd_stock" class="form-control"
+                    required value="{{ old('prd_stock') }}"
+                    inputmode="numeric" pattern="[0-9]*"
+                    oninput="this.value = this.value.replace(/[^0-9]/g,'')">
             </div>
 
             <div class="col-md-6 mb-3">
                 <label class="form-label">Harga</label>
-                <input type="number" name="prd_price" class="form-control"
-                       required value="{{ old('prd_price') }}">
+                <input type="text" name="prd_price" class="form-control"
+                    required value="{{ old('prd_price') }}"
+                    inputmode="numeric" pattern="[0-9]*"
+                    oninput="this.value = this.value.replace(/[^0-9]/g,'')">
             </div>
         </div>
 
@@ -68,13 +72,13 @@
             <div class="col-md-6 mb-3">
                 <label class="form-label">Warna</label>
                 <input type="text" name="prd_color" class="form-control"
-                       value="{{ old('prd_color') }}">
+                    value="{{ old('prd_color') }}">
             </div>
 
             <div class="col-md-6 mb-3">
                 <label class="form-label">Ukuran</label>
                 <input type="text" name="prd_size" class="form-control"
-                       value="{{ old('prd_size') }}">
+                    value="{{ old('prd_size') }}">
             </div>
         </div>
 
@@ -84,10 +88,10 @@
             <select name="pdc_id" class="form-select" required>
                 <option value="">Pilih Kategori</option>
                 @foreach($categories as $cat)
-                    <option value="{{ $cat->id }}"
-                        {{ old('pdc_id') == $cat->id ? 'selected' : '' }}>
-                        {{ $cat->name }}
-                    </option>
+                <option value="{{ $cat->id }}"
+                    {{ old('pdc_id') == $cat->id ? 'selected' : '' }}>
+                    {{ $cat->name }}
+                </option>
                 @endforeach
             </select>
         </div>
