@@ -23,4 +23,29 @@
         </div>
     </div>
 </div>
+
+{{-- MODAL DUPLIKAT --}}
+@if($errors->has('name'))
+<div class="modal fade show" id="duplicateModal" tabindex="-1" style="display:block; background:rgba(0,0,0,.5);">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow">
+            <div class="modal-header bg-danger text-white rounded-top-4">
+                <h5 class="modal-title fw-bold">Kategori Sudah Ada</h5>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Nama kategori <b>"{{ old('name') }}"</b> sudah terdaftar. Silakan gunakan nama lain.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDuplicate()">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function closeDuplicate() {
+        document.getElementById('duplicateModal').style.display = 'none';
+    }
+</script>
+@endif
 @endsection

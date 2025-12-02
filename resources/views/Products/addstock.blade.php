@@ -5,6 +5,11 @@
 
     <h1 class="fw-bold mb-3">Tambah Stok Produk</h1>
 
+    {{-- Tombol Kembali --}}
+    <a href="{{ route('products.index') }}" class="btn btn-secondary mb-3">
+        ← Kembali
+    </a>
+
     <div class="card shadow p-4">
         <form action="{{ route('products.addstock.store') }}" method="POST">
             @csrf
@@ -26,7 +31,9 @@
                 <input type="number" name="amount" class="form-control" min="1" required>
             </div>
 
-            <button type="submit" class="btn btn-success px-4">Tambah Stok</button>
+            <button type="submit" class="btn btn-success px-4">
+                Tambah Stok
+            </button>
         </form>
     </div>
 

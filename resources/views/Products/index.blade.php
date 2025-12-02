@@ -183,66 +183,66 @@
 {{-- ================================================== --}}
 @php
 $lowStock = $products->filter(fn($p) => $p->prd_stock > 0 && $p->prd_stock < 10);
-$outStock = $products->filter(fn($p) => $p->prd_stock == 0);
-@endphp
+    $outStock=$products->filter(fn($p) => $p->prd_stock == 0);
+    @endphp
 
-@if($lowStock->count() > 0 || $outStock->count() > 0)
-<div class="modal fade" id="stockWarningModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
+    @if(($lowStock->count() > 0 || $outStock->count() > 0) && !session('success'))
+    <div class="modal fade" id="stockWarningModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
 
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title fw-bold">Peringatan Stok</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <div class="modal-body">
-
-                @if($outStock->count() > 0)
-                <div class="mb-3">
-                    <h6 class="fw-bold text-danger">Stok Habis:</h6>
-                    <ul class="mb-0">
-                        @foreach($outStock as $p)
-                        <li>{{ $p->prd_name }}</li>
-                        @endforeach
-                    </ul>
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title fw-bold">Peringatan Stok</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                @endif
 
-                @if($lowStock->count() > 0)
-                <div class="mb-2">
-                    <h6 class="fw-bold text-warning">Stok Menipis (&lt; 10):</h6>
-                    <ul class="mb-0">
-                        @foreach($lowStock as $p)
-                        <li>{{ $p->prd_name }} ({{ $p->prd_stock }})</li>
-                        @endforeach
-                    </ul>
+                <div class="modal-body">
+
+                    @if($outStock->count() > 0)
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-danger">Stok Habis:</h6>
+                        <ul class="mb-0">
+                            @foreach($outStock as $p)
+                            <li>{{ $p->prd_name }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    @endif
+
+                    @if($lowStock->count() > 0)
+                    <div class="mb-2">
+                        <h6 class="fw-bold text-warning">Stok Menipis (&lt; 10):</h6>
+                        <ul class="mb-0">
+                            @foreach($lowStock as $p)
+                            <li>{{ $p->prd_name }} ({{ $p->prd_stock }})</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    @endif
+
                 </div>
-                @endif
+
+                <div class="modal-footer border-0">
+                    <button class="btn btn-warning w-100 fw-bold" data-bs-dismiss="modal">Mengerti</button>
+                </div>
 
             </div>
-
-            <div class="modal-footer border-0">
-                <button class="btn btn-warning w-100 fw-bold" data-bs-dismiss="modal">Mengerti</button>
-            </div>
-
         </div>
     </div>
-</div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        new bootstrap.Modal(document.getElementById('stockWarningModal')).show();
-    });
-</script>
-@endif
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            new bootstrap.Modal(document.getElementById('stockWarningModal')).show();
+        });
+    </script>
+    @endif
 
 
-{{-- CUSTOM BADGE WARNA UNGU --}}
-<style>
-    .badge.bg-purple {
-        background-color: #6f42c1 !important;
-    }
-</style>
+    {{-- CUSTOM BADGE WARNA UNGU --}}
+    <style>
+        .badge.bg-purple {
+            background-color: #6f42c1 !important;
+        }
+    </style>
 
-@endsection
+    @endsection

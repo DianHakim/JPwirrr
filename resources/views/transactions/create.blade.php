@@ -28,6 +28,7 @@
                             data-price="{{ $p->prd_price }}"
                             data-stock="{{ $p->prd_stock }}">
                             {{ $p->prd_name }} - Rp {{ number_format($p->prd_price, 0, ',', '.') }}
+                            <span class="text-muted">(Stok: {{ $p->prd_stock }})</span>
                         </li>
                         @endforeach
                     </ul>

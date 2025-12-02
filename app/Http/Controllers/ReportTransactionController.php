@@ -13,18 +13,30 @@ class ReportTransactionController extends Controller
     public function index(Request $request)
     {
         $month = $request->month;   // angka bulan (1–12)
-        $year  = $request->year;    // angka tahun (2022, 2023, dst)
+        $year  = $request->year;    // angka tahun
 
         $query = ReportTransaction::with(['transaction', 'product']);
 
-        // === FILTER TAHUN ===
-        if ($year) {
-            $query->whereYear('dtr_period', $year);
-        }
+        // ============================
+        // DEFAULT: jika tidak pilih apapun → tampil hari ini
+        // ============================
+        if (empty($month) && empty($year)) {
+            $query->whereDate('dtr_period', today());
+        } else {
 
-        // === FILTER BULAN ===
-        if ($month) {
-            $query->whereMonth('dtr_period', $month);
+            // --- Jika user pilih bulan tapi tidak pilih tahun → gunakan tahun ini
+            if ($month) {
+                $query->whereMonth('dtr_period', $month);
+
+                if (!$year) {
+                    $year = date('Y'); // tahun sekarang
+                }
+            }
+
+            // --- Jika user pilih tahun → filter tahun
+            if ($year) {
+                $query->whereYear('dtr_period', $year);
+            }
         }
 
         $reports = $query->orderBy('dtr_period', 'desc')->get();
@@ -46,12 +58,17 @@ class ReportTransactionController extends Controller
 
         $query = ReportTransaction::with(['transaction', 'product']);
 
-        if ($year) {
-            $query->whereYear('dtr_period', $year);
-        }
+        if (!$month && !$year) {
+            $query->whereDate('dtr_period', today());
+        } else {
 
-        if ($month) {
-            $query->whereMonth('dtr_period', $month);
+            if ($year) {
+                $query->whereYear('dtr_period', $year);
+            }
+
+            if ($month) {
+                $query->whereMonth('dtr_period', $month);
+            }
         }
 
         $reports = $query->orderBy('dtr_period', 'desc')->get();

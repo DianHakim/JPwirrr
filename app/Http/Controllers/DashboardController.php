@@ -37,9 +37,11 @@ class DashboardController extends Controller
         $kategoriChart = ProductCategory::withCount('products')->get();
 
         // ======================
-        // PRODUK TERLARIS
+        // PRODUK TERLARIS (FIX)
+        // Hanya tampilkan produk yang MASIH ADA
         // ======================
         $topProducts = TransactionDetail::selectRaw('product_id, SUM(qty) as total_qty')
+            ->whereHas('product') // <<< FIX AGAR PRODUK YANG SUDAH DIHAPUS TIDAK MUNCUL
             ->with('product')
             ->groupBy('product_id')
             ->orderByDesc('total_qty')

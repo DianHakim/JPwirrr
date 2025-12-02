@@ -58,7 +58,7 @@
                 <thead class="table-light">
                     <tr>
                         <th style="width: 140px">Tanggal</th>
-                        <th style="width: 160px">Kode Transaksi</th>
+                        <th style="width: 200px">Kode Transaksi</th>
                         <th>Produk</th>
                         <th style="width: 150px">Subtotal</th>
                     </tr>

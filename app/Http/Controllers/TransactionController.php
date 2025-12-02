@@ -40,112 +40,128 @@ class TransactionController extends Controller
     // ============================
     // SIMPAN TRANSAKSI (FINAL)
     // ============================
+    // ============================
+    // SIMPAN TRANSAKSI (FINAL)
+    // ============================
     public function store(Request $request)
-{
-    $request->validate([
-        'items' => 'required|array|min:1',
-        'payment_method' => 'required|string',
-        'cash' => 'nullable|numeric|min:0',
-        'trs_discount' => 'nullable|numeric|min:0'
-    ]);
-
-    $items = $request->items;
-
-    // ================================
-    // ✅ CEK STOK — FIXED
-    // ================================
-    foreach ($items as $index => $item) {
-
-        $product = Product::find($item['product_id']);
-        $qty = $item['qty'];
-
-        if ($product && $qty > $product->prd_stock) {
-            return back()
-                ->with('stock_error', "Stok produk {$product->prd_name} hanya {$product->prd_stock}, tidak bisa beli {$qty}.")
-                ->withInput();
-        }
-    }
-
-    DB::beginTransaction();
-
-    try {
-
-        // ================================
-        // HITUNG SUBTOTAL
-        // ================================
-        $subtotal = 0;
-        foreach ($items as $item) {
-            $subtotal += $item['qty'] * $item['price'];
-        }
-
-        // DISKON (SUDAH NOMINAL)
-        $discount = $request->trs_discount ?? 0;
-        if ($discount > $subtotal) $discount = $subtotal;
-
-        $total = $subtotal - $discount;
-
-        // CASH DAN KEMBALIAN
-        $cash = $request->cash ?? 0;
-        $change = $cash - $total;
-
-        if ($request->payment_method === 'cash' && $change < 0) {
-            return back()->withErrors(['msg' => 'Uang tunai tidak cukup!']);
-        }
-
-        // ================================
-        // SIMPAN TRANSAKSI
-        // ================================
-        $transaction = Transaction::create([
-            'user_id'       => Auth::id(),
-            'trs_subtotal'  => $subtotal,
-            'trs_discount'  => $discount,
-            'trs_total'     => $total,
-            'payment_method' => $request->payment_method,
-            'cash'          => $cash,
-            'change'        => $change,
+    {
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'payment_method' => 'required|string',
+            'cash' => 'nullable|numeric|min:0',
+            'trs_discount' => 'nullable|numeric|min:0'
         ]);
 
+        $items = $request->items;
+
         // ================================
-        // SIMPAN DETAIL + KURANGI STOK
+        // ✅ CEK STOK
         // ================================
-        foreach ($items as $item) {
+        foreach ($items as $index => $item) {
+            $product = Product::find($item['product_id']);
+            $qty = $item['qty'];
 
-            $product = Product::lockForUpdate()->find($item['product_id']);
-            $before = $product->prd_stock;
-            $after = $before - $item['qty'];
-
-            TransactionDetail::create([
-                'transaction_id' => $transaction->id,
-                'product_id'     => $product->id,
-                'product_name'   => $product->prd_name,
-                'qty'            => $item['qty'],
-                'price_at_sale'  => $item['price'],
-                'subtotal'       => $item['qty'] * $item['price']
-            ]);
-
-            // UPDATE STOK
-            $product->update(['prd_stock' => $after]);
-
-            // LOG STOK
-            StockLog::create([
-                'product_id' => $product->id,
-                'before' => $before,
-                'after' => $after,
-                'description' => 'Transaksi #' . $transaction->trs_code . 
-                                 ' - Barang keluar ' . $item['qty'] . ' pcs'
-            ]);
+            if ($product && $qty > $product->prd_stock) {
+                return back()
+                    ->with('stock_error', "Stok produk {$product->prd_name} hanya {$product->prd_stock}, tidak bisa beli {$qty}.")
+                    ->withInput();
+            }
         }
 
-        DB::commit();
+        DB::beginTransaction();
 
-        return redirect()->route('transactions.show', $transaction->id)
-            ->with('success', 'Transaksi berhasil disimpan!');
+        try {
 
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return back()->withErrors(['msg' => 'Terjadi kesalahan: ' . $e->getMessage()]);
+            // ================================
+            // HITUNG SUBTOTAL
+            // ================================
+            $subtotal = 0;
+            foreach ($items as $item) {
+                $subtotal += $item['qty'] * $item['price'];
+            }
+
+            // DISKON
+            $discount = $request->trs_discount ?? 0;
+            if ($discount > $subtotal) $discount = $subtotal;
+
+            $total = $subtotal - $discount;
+
+            // CASH DAN KEMBALIAN
+            $cash = $request->cash ?? 0;
+            $change = $cash - $total;
+
+            if ($request->payment_method === 'cash' && $change < 0) {
+                return back()->withErrors(['msg' => 'Uang tunai tidak cukup!']);
+            }
+
+            // ================================
+            // SIMPAN TRANSAKSI
+            // ================================
+            $transaction = Transaction::create([
+                'user_id'       => Auth::id(),
+                'trs_subtotal'  => $subtotal,
+                'trs_discount'  => $discount,
+                'trs_total'     => $total,
+                'payment_method' => $request->payment_method,
+                'cash'          => $cash,
+                'change'        => $change,
+            ]);
+
+            // ================================
+            // SIMPAN DETAIL + KURANGI STOK
+            // + MASUKKAN KE LAPORAN
+            // ================================
+            foreach ($items as $item) {
+
+                $product = Product::lockForUpdate()->find($item['product_id']);
+                $before = $product->prd_stock;
+                $after = $before - $item['qty'];
+
+                // SIMPAN DETAIL TRANSAKSI
+                $detail = TransactionDetail::create([
+                    'transaction_id' => $transaction->id,
+                    'product_id'     => $product->id,
+                    'product_name'   => $product->prd_name,
+                    'qty'            => $item['qty'],
+                    'price_at_sale'  => $item['price'],
+                    'subtotal'       => $item['qty'] * $item['price']
+                ]);
+
+                // UPDATE STOK
+                $product->update(['prd_stock' => $after]);
+
+                // LOG STOK
+                StockLog::create([
+                    'product_id' => $product->id,
+                    'before' => $before,
+                    'after' => $after,
+                    'description' => 'Transaksi #' . $transaction->trs_code .
+                        ' - Barang keluar ' . $item['qty'] . ' pcs'
+                ]);
+
+                // ================================
+                // 🔥 MASUKKAN KE LAPORAN OTOMATIS
+                // ================================
+                \App\Models\ReportTransaction::create([
+                    'dtr_period'     => now(),
+                    'transaction_id' => $transaction->id,
+                    'product_id'     => $product->id,
+                    'dtr_qty'        => $item['qty'],
+                    'dtr_price'      => $item['price'],
+                    'dtr_subtotal'   => $item['qty'] * $item['price'],
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()->route('transactions.show', $transaction->id)
+                ->with('success', 'Transaksi berhasil disimpan!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['msg' => 'Terjadi kesalahan: ' . $e->getMessage()]);
+        }
     }
-}
+
 
     public function show($id)
     {

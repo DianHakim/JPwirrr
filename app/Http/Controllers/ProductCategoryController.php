@@ -11,11 +11,11 @@ class ProductCategoryController extends Controller
     {
         $search = $request->input('search');
 
-        $categories = ProductCategory::when($search, function($query, $search) {
+        $categories = ProductCategory::when($search, function ($query, $search) {
             return $query->where('name', 'like', "%{$search}%");
         })
-        ->orderBy('id', 'desc')
-        ->get();
+            ->orderBy('id', 'desc')
+            ->get();
 
         return view('productcategory.index', compact('categories'));
     }
@@ -59,8 +59,17 @@ class ProductCategoryController extends Controller
     public function destroy($id)
     {
         $category = ProductCategory::findOrFail($id);
+
+        // Cek apakah kategori sedang dipakai di produk
+        if ($category->products()->count() > 0) {
+            return redirect()->route('productcategory.index')
+                ->with('error', 'Kategori tidak dapat dihapus karena masih digunakan oleh produk!');
+        }
+
+        // Jika aman → hapus kategori
         $category->delete();
 
-        return redirect()->route('productcategory.index')->with('success', 'Kategori berhasil dihapus!');
+        return redirect()->route('productcategory.index')
+            ->with('success', 'Kategori berhasil dihapus!');
     }
 }

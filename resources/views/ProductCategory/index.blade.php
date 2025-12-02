@@ -91,6 +91,38 @@
 </script>
 @endif
 
+{{-- ================================================== --}}
+{{-- MODAL ERROR (Kategori tidak dapat dihapus) --}}
+{{-- ================================================== --}}
+@if(session('error'))
+<div class="modal fade" id="errorModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Gagal Menghapus</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body text-center py-4">
+                <p class="fs-5 mb-0">{{ session('error') }}</p>
+            </div>
+
+            <div class="modal-footer border-0">
+                <button class="btn btn-danger w-100" data-bs-dismiss="modal">Oke</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        new bootstrap.Modal(document.getElementById('errorModal')).show();
+    });
+</script>
+@endif
+
 
 {{-- ================================================== --}}
 {{-- MODAL KONFIRMASI HAPUS --}}
